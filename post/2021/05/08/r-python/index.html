@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Qingqing Guo" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>RNA-Seq analysis</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/post/2021/05/08/r-python/">RNA-Seq analysis</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         May 8, 2021 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<pre class="r"><code>library(reticulate)
+# py_install(&quot;pandas&quot;)
+# py_install(&quot;numpy&quot;)
+# py_install(&quot;matplotlib&quot;)
+# py_install(&quot;seaborn&quot;)
+# py_install(&quot;random&quot;)
+# py_install(&quot;sklearn&quot;,pip = TRUE)</code></pre>
+<pre class="python"><code># import modules
+import pandas as pd
+import seaborn as sns
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans</code></pre>
+<div id="what-is-gene-expression-matrix" class="section level1">
+<h1>What is gene expression matrix?</h1>
+<p><img src="/img/figure2.png" /></p>
+</div>
+<div id="analysis-of-gene-expression-matrix" class="section level1">
+<h1>Analysis of gene expression matrix</h1>
+<p>data source: <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149146" class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149146</a><br />
+</p>
+<p>This expression matrix has been normalized by limma package.</p>
+<pre class="python"><code># load expression matrix
+df = pd.read_csv(&quot;GSE149146_RNA-seq_normCounts.txt&quot;, sep = &#39;\t&#39;, header = 0, index_col = 4)
+df.drop(df.columns[0:4],axis=1,inplace=True)
+df.dropna(axis=0,inplace= True)
+print(df.shape); df.head()</code></pre>
+<pre><code>## (12853, 18)
+##               A2780_1   A2780_2   A2780_3  ...    PEO4_1    PEO4_2    PEO4_3
+## HGNC.symbol                                ...                              
+## SLC34A2      1.554649  1.568913  1.297565  ... -2.531083 -0.261533 -0.716586
+## NID1         7.432627  7.602815  7.443613  ... -2.531083  1.504002 -0.716586
+## EREG        -2.837668 -2.954649 -0.576904  ...  4.628788  4.576410  4.543941
+## KRT5        -2.837668 -2.954649 -2.161866  ...  4.745041  4.405224  4.731874
+## KLK5        -2.837668 -2.954649 -2.161866  ...  6.854779  6.573886  6.772592
+## 
+## [5 rows x 18 columns]</code></pre>
+<div id="correlation-heatmap" class="section level2">
+<h2>1. correlation heatmap</h2>
+<pre class="python"><code># Plotting a diagonal correlation matrix
+corr = df.corr()
+np.tril(np.ones(corr.shape)).astype(np.bool)[0:5,0:5]</code></pre>
+<pre><code>## array([[ True, False, False, False, False],
+##        [ True,  True, False, False, False],
+##        [ True,  True,  True, False, False],
+##        [ True,  True,  True,  True, False],
+##        [ True,  True,  True,  True,  True]])</code></pre>
+<pre class="python"><code>df_lt = corr.where(np.tril(np.ones(corr.shape)).astype(np.bool))
+sns.set(font_scale = 0.7)
+sns.heatmap(df_lt,cmap=&quot;Spectral_r&quot;,annot = True,annot_kws={&quot;size&quot;:6})</code></pre>
+<p><img src="/post/2021-05-08-r-python_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="subset-data" class="section level2">
+<h2>2. subset data</h2>
+<pre class="python"><code># make a subset
+samples = list(df.columns)
+print(samples);</code></pre>
+<pre><code>## [&#39;A2780_1&#39;, &#39;A2780_2&#39;, &#39;A2780_3&#39;, &#39;CP70_1&#39;, &#39;CP70_2&#39;, &#39;CP70_3&#39;, &#39;PEA1_1&#39;, &#39;PEA1_2&#39;, &#39;PEA1_3&#39;, &#39;PEA2_1&#39;, &#39;PEA2_2&#39;, &#39;PEA2_3&#39;, &#39;PEO1_1&#39;, &#39;PEO1_2&#39;, &#39;PEO1_3&#39;, &#39;PEO4_1&#39;, &#39;PEO4_2&#39;, &#39;PEO4_3&#39;]</code></pre>
+<pre class="python"><code>sub_sample = []
+for i in samples:
+  if i.startswith(&quot;A2780&quot;) or i.startswith(&quot;CP70&quot;):
+    sub_sample.append(i)
+print(sub_sample);</code></pre>
+<pre><code>## [&#39;A2780_1&#39;, &#39;A2780_2&#39;, &#39;A2780_3&#39;, &#39;CP70_1&#39;, &#39;CP70_2&#39;, &#39;CP70_3&#39;]</code></pre>
+<pre class="python"><code>df_sub = df[sub_sample]
+df_sub = df_sub.sample(n=20,random_state=None,replace=False)
+sns.heatmap(df_sub, cmap = &#39;bwr&#39;)</code></pre>
+<p><img src="/post/2021-05-08-r-python_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="python"><code># randomly select three genes
+genes = list(df_sub.index)
+gene = random.sample(genes,3)
+gene;
+
+df_sub2 = df.loc[gene]
+
+# plot gene expression across all cell types
+plt.plot(df.loc[gene[0]], color=&#39;red&#39;)
+plt.plot(df.loc[gene[1]], color=&#39;green&#39;)
+plt.plot(df.loc[gene[2]], color=&#39;blue&#39;)
+plt.xlabel(&quot;cell type&quot;)
+plt.ylabel(&#39;expression level&#39;)
+plt.legend([gene[0],gene[1],gene[2]])
+plt.tick_params(labelsize=4.6)
+plt.show()</code></pre>
+<p><img src="/post/2021-05-08-r-python_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="pca-analysis" class="section level2">
+<h2>3. PCA analysis</h2>
+<pre class="python"><code># PCA in python
+cell = []
+for i in list(df.columns):
+  cell.append(i.split(&quot;_&quot;)[0])
+print(cell);</code></pre>
+<pre><code>## [&#39;A2780&#39;, &#39;A2780&#39;, &#39;A2780&#39;, &#39;CP70&#39;, &#39;CP70&#39;, &#39;CP70&#39;, &#39;PEA1&#39;, &#39;PEA1&#39;, &#39;PEA1&#39;, &#39;PEA2&#39;, &#39;PEA2&#39;, &#39;PEA2&#39;, &#39;PEO1&#39;, &#39;PEO1&#39;, &#39;PEO1&#39;, &#39;PEO4&#39;, &#39;PEO4&#39;, &#39;PEO4&#39;]</code></pre>
+<pre class="python"><code>x = df.transpose().to_numpy()
+y = cell</code></pre>
+<pre class="python"><code>kmeans = KMeans(n_clusters=6)
+y_kmeans = kmeans.fit_predict(x)
+print(y_kmeans)</code></pre>
+<pre><code>## [4 4 4 1 1 1 3 3 3 0 0 0 2 2 2 5 5 5]</code></pre>
+<pre class="python"><code>pca = PCA()
+pcs = pca.fit_transform(x)
+
+# cumulative sum of pca explained variance
+pca.explained_variance_ratio_.cumsum()</code></pre>
+<pre><code>## array([0.51514787, 0.71180362, 0.82393378, 0.90478494, 0.95182425,
+##        0.95826868, 0.96392532, 0.96910698, 0.97393273, 0.97841311,
+##        0.98253677, 0.98618803, 0.98931392, 0.99227214, 0.99496423,
+##        0.99757371, 1.        , 1.        ])</code></pre>
+<pre class="python"><code>d = {&#39;Principal Component 1&#39;:pcs[:,0], &#39;Principal Component 2&#39;:pcs[:,1], &#39;cell type&#39;:cell}
+data = pd.DataFrame(data=d)
+
+sns.lmplot(&#39;Principal Component 1&#39;, &#39;Principal Component 2&#39;, data=data, hue=&#39;cell type&#39;, fit_reg=False, palette=&quot;Set1&quot;)</code></pre>
+<pre><code>## &lt;seaborn.axisgrid.FacetGrid object at 0x7f9e77066438&gt;
+## 
+## /Users/qingqingguo/Library/r-miniconda/envs/r-reticulate/lib/python3.6/site-packages/seaborn/_decorators.py:43: FutureWarning: Pass the following variables as keyword args: x, y. From version 0.12, the only valid positional argument will be `data`, and passing other arguments without an explicit keyword will result in an error or misinterpretation.
+##   FutureWarning</code></pre>
+<pre class="python"><code>plt.gcf().subplots_adjust(bottom=0.15)
+plt.show()</code></pre>
+<p><img src="/post/2021-05-08-r-python_files/figure-html/unnamed-chunk-8-1.png" width="546" /></p>
+</div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My site</title>
+    <link>/</link>
+    <description>Recent content on My site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sat, 08 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RNA-Seq analysis</title>
+      <link>/post/2021/05/08/r-python/</link>
+      <pubDate>Sat, 08 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/08/r-python/</guid>
+      <description>library(reticulate) # py_install(&amp;quot;pandas&amp;quot;) # py_install(&amp;quot;numpy&amp;quot;) # py_install(&amp;quot;matplotlib&amp;quot;) # py_install(&amp;quot;seaborn&amp;quot;) # py_install(&amp;quot;random&amp;quot;) # py_install(&amp;quot;sklearn&amp;quot;,pip = TRUE) # import modules import pandas as pd import seaborn as sns import random import matplotlib.pyplot as plt import numpy as np from sklearn.decomposition import PCA from sklearn.preprocessing import StandardScaler from sklearn.cluster import KMeans What is gene expression matrix?  Analysis of gene expression matrix data source: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149146
+This expression matrix has been normalized by limma package.</description>
+    </item>
+    
+    <item>
+      <title>project2</title>
+      <link>/project/project2/</link>
+      <pubDate>Sun, 25 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>0. Introduce the dataset and the variables The adult dataset is from the 1994 Census database. It is also known as “Census Income” dataset. There are totally 32560 observations and 12 variables. After rows with missing values were removed, 30161 observations are left.
+1. age: the age of an individual 2. workclass: a general term to represent the employment status of an individual 3. education_num: the number of years of education in total 4.</description>
+    </item>
+    
+    <item>
+      <title>project1</title>
+      <link>/project/project1/</link>
+      <pubDate>Wed, 17 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>The two datasets were acquired from UCI Machine Learning Repository that record the hourly count of rental bikes between 2011 and 2012 in Capital bikeshare system and some other information including temperature, weather and so on. The first data frame “BikeSharing.csv” is tidy recording the rental bike count hourly daily during 2011 and 2012, and it also contains other information such as temperature, weather, etc. It has 17379 observations and 16 variables.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/projects/</guid>
+      <description>  Check out some of my coding projects below:
+ Wrangling &amp;amp; Exploratory Data Analysis
+ Modeling, Inference, Prediction
+  -- </description>
+    </item>
+    
+    <item>
+      <title>Resume</title>
+      <link>/resume/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/</guid>
+      <description>     </description>
+    </item>
+    
+  </channel>
+</rss>

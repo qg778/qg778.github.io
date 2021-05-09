@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on My site</title>
+    <link>/post/</link>
+    <description>Recent content in Posts on My site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sat, 08 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RNA-Seq analysis</title>
+      <link>/post/2021/05/08/r-python/</link>
+      <pubDate>Sat, 08 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/08/r-python/</guid>
+      <description>library(reticulate) # py_install(&amp;quot;pandas&amp;quot;) # py_install(&amp;quot;numpy&amp;quot;) # py_install(&amp;quot;matplotlib&amp;quot;) # py_install(&amp;quot;seaborn&amp;quot;) # py_install(&amp;quot;random&amp;quot;) # py_install(&amp;quot;sklearn&amp;quot;,pip = TRUE) # import modules import pandas as pd import seaborn as sns import random import matplotlib.pyplot as plt import numpy as np from sklearn.decomposition import PCA from sklearn.preprocessing import StandardScaler from sklearn.cluster import KMeans What is gene expression matrix?  Analysis of gene expression matrix data source: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149146
+This expression matrix has been normalized by limma package.</description>
+    </item>
+    
+  </channel>
+</rss>

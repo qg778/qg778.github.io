@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Qingqing Guo" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>project2</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project/project2/">project2</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         April 25, 2021 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduce-the-dataset-and-the-variables" class="section level1">
+<h1>0. Introduce the dataset and the variables</h1>
+<p>The adult dataset is from the 1994 Census database. It is also known as “Census Income” dataset. There are totally 32560 observations and 12 variables. After rows with missing values were removed, 30161 observations are left.<br />
+</p>
+<pre><code>1. age: the age of an individual 
+2. workclass: a general term to represent the employment status of an individual 
+3. education_num: the number of years of education in total 
+4. marital-status: marital status of an individual. Married-civ-spouse corresponds to a civilian spouse while Married-AF-spouse is a spouse in the Armed Forces. 
+5. occupation: the general type of occupation of an individual 
+6. race: Descriptions of an individual’s race 
+7. sex: the biological sex of the individual 
+8 &amp; 9. capital_gain and capital_loss: income from investment sources other than wage/salary. 
+10. hours-per-week: the hours an individual has reported to work per week 
+11. native-country: country of origin for an individual 
+12. income: whether or not an individual makes more than $50,000 annually </code></pre>
+<pre class="r"><code>df &lt;- read.table(&quot;data/adult.txt&quot;,header = T)
+dim(df)</code></pre>
+<pre><code>## [1] 32560    12</code></pre>
+<pre class="r"><code># remove rows with missing values
+df &lt;- df[rowSums(df==&quot;?&quot;)==0,] %&gt;% na.omit()
+df %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 30,161
+## Columns: 12
+## $ age            &lt;int&gt; 39, 50, 38, 53, 28, 37, 49, 52, 31, 42, 37, 30, 23, 32,…
+## $ workclass      &lt;chr&gt; &quot;State-gov&quot;, &quot;Self-emp-not-inc&quot;, &quot;Private&quot;, &quot;Private&quot;, …
+## $ educatoin_num  &lt;int&gt; 13, 13, 9, 7, 13, 14, 5, 9, 14, 13, 10, 13, 13, 12, 4, …
+## $ marital_status &lt;chr&gt; &quot;Never-married&quot;, &quot;Married-civ-spouse&quot;, &quot;Divorced&quot;, &quot;Mar…
+## $ occupation     &lt;chr&gt; &quot;Adm-clerical&quot;, &quot;Exec-managerial&quot;, &quot;Handlers-cleaners&quot;,…
+## $ race           &lt;chr&gt; &quot;White&quot;, &quot;White&quot;, &quot;White&quot;, &quot;Black&quot;, &quot;Black&quot;, &quot;White&quot;, &quot;…
+## $ sex            &lt;chr&gt; &quot;Male&quot;, &quot;Male&quot;, &quot;Male&quot;, &quot;Male&quot;, &quot;Female&quot;, &quot;Female&quot;, &quot;Fe…
+## $ capital_gain   &lt;int&gt; 2174, 0, 0, 0, 0, 0, 0, 0, 14084, 5178, 0, 0, 0, 0, 0, …
+## $ capital_loss   &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+## $ hours_per_week &lt;int&gt; 40, 13, 40, 40, 40, 40, 16, 45, 50, 40, 80, 40, 30, 50,…
+## $ native_country &lt;chr&gt; &quot;United-States&quot;, &quot;United-States&quot;, &quot;United-States&quot;, &quot;Uni…
+## $ income         &lt;chr&gt; &quot;&lt;=50K&quot;, &quot;&lt;=50K&quot;, &quot;&lt;=50K&quot;, &quot;&lt;=50K&quot;, &quot;&lt;=50K&quot;, &quot;&lt;=50K&quot;, &quot;…</code></pre>
+</div>
+<div id="perform-a-manova-testing" class="section level1">
+<h1>1. Perform a MANOVA testing</h1>
+<pre class="r"><code># perform MANOVA testing
+man1 &lt;- manova(cbind(educatoin_num,capital_gain,capital_loss,hours_per_week) ~ race, data = df)
+summary(man1)</code></pre>
+<pre><code>##              Df   Pillai approx F num Df den Df    Pr(&gt;F)    
+## race          4 0.015841   29.975     16 120624 &lt; 2.2e-16 ***
+## Residuals 30156                                              
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># perform univariate ANOVAs
+summary.aov(man1)</code></pre>
+<pre><code>##  Response educatoin_num :
+##                Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## race            4   2435  608.81  94.789 &lt; 2.2e-16 ***
+## Residuals   30156 193686    6.42                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response capital_gain :
+##                Df     Sum Sq   Mean Sq F value   Pr(&gt;F)   
+## race            4 8.2941e+08 207352532  3.7814 0.004455 **
+## Residuals   30156 1.6536e+12  54835520                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response capital_loss :
+##                Df     Sum Sq Mean Sq F value   Pr(&gt;F)    
+## race            4    4454596 1113649  6.8243 1.74e-05 ***
+## Residuals   30156 4921096920  163188                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response hours_per_week :
+##                Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+## race            4   16672    4168  29.149 &lt; 2.2e-16 ***
+## Residuals   30156 4312035     143                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># perform post-hoc t tests
+pairwise.t.test(df$educatoin_num, df$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  df$educatoin_num and df$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other  
+## Asian-Pac-Islander &lt; 2e-16            -                  -       -      
+## Black              0.2684             &lt; 2e-16            -       -      
+## Other              0.0027             &lt; 2e-16            1.1e-06 -      
+## White              5.5e-08            &lt; 2e-16            &lt; 2e-16 &lt; 2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(df$capital_gain, df$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  df$capital_gain and df$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other  
+## Asian-Pac-Islander 0.20038            -                  -       -      
+## Black              0.90376            0.01381            -       -      
+## Other              0.54109            0.65562            0.36833 -      
+## White              0.27323            0.52075            0.00025 0.86687
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(df$capital_loss, df$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  df$capital_loss and df$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other
+## Asian-Pac-Islander 0.047              -                  -       -    
+## Black              0.446              0.022              -       -    
+## Other              0.713              0.165              0.829   -    
+## White              0.021              0.949              5.9e-06 0.113
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(df$hours_per_week, df$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  df$hours_per_week and df$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other
+## Asian-Pac-Islander 0.927              -                  -       -    
+## Black              0.018              6.9e-05            -       -    
+## Other              0.767              0.660              0.079   -    
+## White              0.274              0.084              &lt; 2e-16 0.167
+## 
+## P value adjustment method: none</code></pre>
+<p>Did 1 MANOVA, 4 ANOVAs, and 4*10=40 t tests (45 tests totally):</p>
+<pre class="r"><code># probability of at least one type I error
+1 - 0.95^45</code></pre>
+<pre><code>## [1] 0.9005597</code></pre>
+<pre class="r"><code># adjust the significance level (bonferroni correction)
+0.05/45</code></pre>
+<pre><code>## [1] 0.001111111</code></pre>
+<p>The p-value of MANOVA testing is &lt; 2.2e-16, so there are significant differences among the races for at least one of the variables.<br />
+Based on the ANOVA test results, for all of the four variables, at least one race differs.<br />
+The overall type-I error rate is 0.901. For Bonferroni correction, should use α=0.0011.<br />
+<br />
+All significant differences after adjustment:<br />
+For educatoin_num:<br />
+Amer-Indian-Eskimo vs. Asian-Pac-Islander<br />
+Amer-Indian-Eskimo vs. White<br />
+Asian-Pac-Islander vs. Black<br />
+Asian-Pac-Islander vs. Other<br />
+Asian-Pac-Islander vs. White<br />
+Black vs. Other<br />
+Black vs. White<br />
+Other vs. White<br />
+<br />
+For capital_gain:<br />
+Black vs. White<br />
+<br />
+For capital_loss:<br />
+Black vs. White<br />
+<br />
+For hours_per_week:<br />
+Asian-Pac-Islander vs. Black<br />
+Black vs. White</p>
+<pre class="r"><code># check MANOVA assumptions
+## Multivariate normality of DVs
+set.seed(1234)
+df1 &lt;- sample_n(df, 5000) # only 5000 samples are allowed
+group &lt;- df1$race
+DVs &lt;- df1 %&gt;% select(educatoin_num,capital_gain,capital_loss,hours_per_week)
+sapply(split(DVs,group), mshapiro_test) # Test multivariate normality for each group (null: normality met)</code></pre>
+<pre><code>##           Amer-Indian-Eskimo Asian-Pac-Islander Black        Other       
+## statistic 0.1583149          0.3160192          0.4907767    0.1524338   
+## p.value   4.042872e-13       1.260783e-22       1.148837e-34 1.614737e-13
+##           White       
+## statistic 0.2455024   
+## p.value   1.576274e-85</code></pre>
+<pre class="r"><code>## Homogeneity of within-group covariance matrices
+box_m(DVs, group)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   statistic   p.value parameter method                                          
+##       &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                                           
+## 1     1074. 4.69e-199        40 Box&#39;s M-test for Homogeneity of Covariance Matr…</code></pre>
+<pre class="r"><code>## Identify multicollinearity
+df %&gt;% select(educatoin_num,capital_gain,capital_loss,hours_per_week) %&gt;% ggpairs()</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Based on the p-values, multivariate normality of DVs and homogeneity of within-group covariance matrices are not met here, while there is no multicollinearity based on the Pearson correlations.</p>
+</div>
+<div id="perform-some-kind-of-randomization-test" class="section level1">
+<h1>2. Perform some kind of randomization test</h1>
+<pre class="r"><code># difference in education years between working in federal government and incorporated self-employment
+df2 &lt;- df %&gt;% filter(df$workclass==&quot;Federal-gov&quot; | df$workclass==&quot;Self-emp-inc&quot;)
+rand_diff &lt;- c()
+
+set.seed(12345)
+for(i in 1:5000){
+  rand_df &lt;- data.frame(educatoin_num=sample(df2$educatoin_num),workclass=df2$workclass)
+  rand_diff[i] &lt;- mean(rand_df$educatoin_num[rand_df$workclass==&quot;Federal-gov&quot;])-mean(rand_df$educatoin_num[rand_df$workclass==&quot;Self-emp-inc&quot;])
+}
+mean_diff &lt;- mean(df$educatoin_num[df$workclass==&quot;Federal-gov&quot;])-mean(df$educatoin_num[df$workclass==&quot;Self-emp-inc&quot;])
+
+# two-tailed p-values
+mean(abs(rand_diff)&gt;abs(mean_diff))</code></pre>
+<pre><code>## [1] 0.0362</code></pre>
+<pre class="r"><code># plot the null distribution
+ggplot()+geom_histogram(aes(x=rand_diff, y=..density..),fill=&quot;grey&quot;,color=&quot;black&quot;) + 
+    geom_density(aes(rand_diff))+geom_vline(xintercept=c(mean_diff,-mean_diff),color=&quot;red&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code># compare to the p-value from t-test
+t.test(df$educatoin_num[df$workclass==&quot;Federal-gov&quot;], df$educatoin_num[df$workclass==&quot;Self-emp-inc&quot;], alternative = c(&quot;two.sided&quot;))</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  df$educatoin_num[df$workclass == &quot;Federal-gov&quot;] and df$educatoin_num[df$workclass == &quot;Self-emp-inc&quot;]
+## t = -2.1216, df = 2007.5, p-value = 0.03399
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.42251517 -0.01660401
+## sample estimates:
+## mean of x mean of y 
+##  10.94804  11.16760</code></pre>
+<p>H0: there is no difference in education years between working in federal government and incorporated self-employment.<br />
+HA: there is a substantial difference in education years between working in federal government and incorporated self-employment.<br />
+<br />
+The p-value is less than 0.05 so we can reject the null hypothesis and conclude that there is a substantial difference in education years between working in federal government and incorporated self-employment.</p>
+</div>
+<div id="build-a-linear-regression-model-predicting-one-of-your-response-variables-from-at-least-2-other-variables-including-their-interaction." class="section level1">
+<h1>3. Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction.</h1>
+<pre class="r"><code>df3 &lt;- df %&gt;% mutate(age_c=df$age-mean(df$age))
+fit1 &lt;- lm(hours_per_week ~ income+age_c*sex, data = df3)
+summary(fit1)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = hours_per_week ~ income + age_c * sex, data = df3)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -45.656  -5.982  -1.041   4.155  63.606 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   36.478048   0.117892 309.419  &lt; 2e-16 ***
+## income&gt;50K     5.018158   0.161027  31.164  &lt; 2e-16 ***
+## age_c          0.075058   0.008556   8.773  &lt; 2e-16 ***
+## sexMale        4.783395   0.144508  33.101  &lt; 2e-16 ***
+## age_c:sexMale -0.055806   0.010618  -5.256 1.48e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 11.43 on 30156 degrees of freedom
+## Multiple R-squared:  0.08982,    Adjusted R-squared:  0.0897 
+## F-statistic:   744 on 4 and 30156 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Intercept: the predicted hours_per_week for female at the mean age with income&lt;=50K is 36.5.<br />
+income&gt;50K: female at the mean age with income&gt;50K have predicted hours_per_week that is 5.01 greater than female at the mean age with income&lt;=50K.<br />
+age_c: for female with income&lt;=50K, for every 1-unit increase in age, predicted hours_per_week goes up 0.075.<br />
+sexMale: male at the mean age with income&lt;=50K have predicted hours_per_week that is 4.78 higher than female at the mean age with income&lt;=50K.<br />
+age_c:sexMale: when income&lt;=50K, slope of age on hours_per_week for male is 0.056 lower than for female.<br />
+<br />
+The model explains only 9.0% of the variation.</p>
+<pre class="r"><code># Plot the regression using ggplot()
+df3 %&gt;% select(age_c,sex,hours_per_week) %&gt;%
+    na.omit %&gt;%
+    ggplot(aes(age_c,hours_per_week, color = sex)) + 
+    geom_point(size=0.1,alpha=0.3)+geom_smooth(method = &quot;lm&quot;)+geom_vline(xintercept=0,lty=2)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code># Check assumptions of linearity, normality, and homoskedasticity
+resids &lt;- fit1$residuals
+fitvals &lt;- fit1$fitted.values
+
+## normality
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids))</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>## linearity and homoskedasticity
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&quot;)</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<pre class="r"><code># corrected SE
+coeftest(fit1, vcov = vcovHC(fit1))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                Estimate Std. Error  t value  Pr(&gt;|t|)    
+## (Intercept)   36.478048   0.117836 309.5658 &lt; 2.2e-16 ***
+## income&gt;50K     5.018158   0.157854  31.7899 &lt; 2.2e-16 ***
+## age_c          0.075058   0.010241   7.3293 2.371e-13 ***
+## sexMale        4.783395   0.145800  32.8079 &lt; 2.2e-16 ***
+## age_c:sexMale -0.055806   0.012856  -4.3410 1.423e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Neither linearity nor normality is met, while homoskedasticity is generally met here because the points don’t fan out as the x-axis goes up.<br />
+<br />
+Intercept: the predicted hours_per_week for female at the mean age with income&lt;=50K is 36.5.<br />
+income&gt;50K: income is significantly associated with hours_per_week for female at the mean age. Female at the mean age with income&gt;50K have predicted hours_per_week that is 5.02 greater than female at the mean age with income&lt;=50K.<br />
+age_c: age is significantly associated with hours_per_week for female with income&lt;=50K. For female with income&lt;=50K, for every 1-unit increase in age, predicted hours_per_week goes up 0.075.<br />
+sexMale: sex is significantly associated with hours_per_week for people at the mean age with income&lt;=50K. Male at the mean age with income&lt;=50K have predicted hours_per_week that is 4.78 higher than female at the mean age with income&lt;=50K.<br />
+age_c:sexMale: the interaction between age and sex is significantly associated with hours_per_week for people with income&lt;=50K. In the case of income&lt;=50K, slope of age on hours_per_week for male is 0.056 lower than for female.<br />
+<br />
+After robust SEs, there is only slight change in the t-statistics and SEs.</p>
+</div>
+<div id="bootstrapped-standard-errors" class="section level1">
+<h1>4. bootstrapped standard errors</h1>
+<pre class="r"><code>df4 &lt;- df3 %&gt;% select(income,age_c,sex,hours_per_week)
+
+# resampling observations
+samp_distn &lt;- replicate(5000, {
+  boot_dat &lt;- sample_frac(df4, replace = T)  #take bootstrap sample of rows
+  fit &lt;- lm(hours_per_week ~ income+age_c*sex, data = boot_dat)  #fit model on bootstrap sample
+  coef(fit)
+})
+
+## Estimated SEs
+samp_distn %&gt;%
+    t %&gt;%
+    as.data.frame %&gt;%
+    summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) income&gt;50K      age_c   sexMale age_c:sexMale
+## 1   0.1180441  0.1560584 0.01040662 0.1461777    0.01298913</code></pre>
+<p>The resampling results are closer to the robust SEs than to the original SEs, meaning the results with robust standard errors are more accurate.</p>
+</div>
+<div id="fit-a-logistic-regression-model-predicting-a-binary-variable" class="section level1">
+<h1>5. Fit a logistic regression model predicting a binary variable</h1>
+<pre class="r"><code>df5 &lt;- df %&gt;% mutate(income=ifelse(income==&quot;&gt;50K&quot;,1,0))</code></pre>
+<pre class="r"><code>fit2 &lt;- glm(income ~ marital_status+educatoin_num+sex, data = df5, family = &quot;binomial&quot;)
+coeftest(fit2)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                       Estimate Std. Error  z value  Pr(&gt;|z|)
+## (Intercept)                         -6.6110284  0.1039028 -63.6270 &lt; 2.2e-16
+## marital_statusMarried-AF-spouse      2.3023848  0.4628898   4.9739 6.561e-07
+## marital_statusMarried-civ-spouse     1.8979679  0.0590925  32.1186 &lt; 2.2e-16
+## marital_statusMarried-spouse-absent -0.2104621  0.2045286  -1.0290   0.30347
+## marital_statusNever-married         -0.9712736  0.0714400 -13.5957 &lt; 2.2e-16
+## marital_statusSeparated             -0.2642675  0.1426410  -1.8527   0.06393
+## marital_statusWidowed                0.2227012  0.1351606   1.6477   0.09942
+## educatoin_num                        0.4004510  0.0075584  52.9810 &lt; 2.2e-16
+## sexMale                              0.3776977  0.0451668   8.3623 &lt; 2.2e-16
+##                                        
+## (Intercept)                         ***
+## marital_statusMarried-AF-spouse     ***
+## marital_statusMarried-civ-spouse    ***
+## marital_statusMarried-spouse-absent    
+## marital_statusNever-married         ***
+## marital_statusSeparated             .  
+## marital_statusWidowed               .  
+## educatoin_num                       ***
+## sexMale                             ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit2)) %&gt;% round(3) %&gt;% t</code></pre>
+<pre><code>##      (Intercept) marital_statusMarried-AF-spouse
+## [1,]       0.001                           9.998
+##      marital_statusMarried-civ-spouse marital_statusMarried-spouse-absent
+## [1,]                            6.672                                0.81
+##      marital_statusNever-married marital_statusSeparated marital_statusWidowed
+## [1,]                       0.379                   0.768                 1.249
+##      educatoin_num sexMale
+## [1,]         1.492   1.459</code></pre>
+<pre class="r"><code>prob &lt;- predict(fit2,type=&quot;response&quot;)
+
+# ROC curve
+ROCplot &lt;- ggplot() + geom_roc(aes(d=df5$income,m=prob),n.cuts=0) + 
+  geom_segment(aes(x=0,xend=1,y=0,yend=1), lty=2)
+ROCplot</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code># compute the AUC
+calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.8567277</code></pre>
+<p>Intercept: the predicted odds of income&gt;50K for divorced female with 0 educatoin_num is e^-6.6=0.001<br />
+marital_statusMarried-AF-spouse: for female with 0 educatoin_num, odds of income&gt;50K for those with a spouse in the Armed Forces is e^2.3=10 times odds for those divorced.<br />
+marital_statusMarried-civ-spouse: for female with 0 educatoin_num, odds of income&gt;50K for those with a civilian spouse is e^1.9=6.67 times odds for those divorced.<br />
+marital_statusMarried-spouse-absent: for female with 0 educatoin_num, odds of income&gt;50K for those with a spouse absent is e^-0.21=0.81 times odds for those divorced.<br />
+marital_statusNever-married: for female with 0 educatoin_num, odds of income&gt;50K for those never married is e^-0.97=0.38 times odds for those divorced.<br />
+marital_statusSeparated: for female with 0 educatoin_num, odds of income&gt;50K for those married but separated is e^-0.26=0.77 times odds for those divorced.<br />
+marital_statusWidowed: for female with 0 educatoin_num, odds of income&gt;50K for those widowed is e^0.22=1.25 times odds for those divorced.<br />
+educatoin_num: for divorced female, going up 1 unit of educatoin_num multiplies the odds of income&gt;50K by a factor of e^0.40=1.49.<br />
+sexMale: odds of income&gt;50K for divorced male is e^0.38=1.46 times odds for divorced female.<br />
+<br />
+Based on the rules, 0.86 AUC means the model performing is good.</p>
+<pre class="r"><code># confusion matrix
+table(predict=as.numeric(prob&gt;.5),truth=df5$income)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict     0     1   Sum
+##     0   20970  3960 24930
+##     1    1683  3548  5231
+##     Sum 22653  7508 30161</code></pre>
+<pre class="r"><code># Sensitivity (TPR)
+3548/7508</code></pre>
+<pre><code>## [1] 0.4725626</code></pre>
+<pre class="r"><code># Specificity (TNR)
+20970/22653</code></pre>
+<pre><code>## [1] 0.9257052</code></pre>
+<pre class="r"><code># Precision (PPV)
+3548/5231</code></pre>
+<pre><code>## [1] 0.6782642</code></pre>
+<pre class="r"><code># Accuracy
+(20970+3548)/30161</code></pre>
+<pre><code>## [1] 0.8129041</code></pre>
+<pre class="r"><code># density plot of the log-odds (logit)
+logit &lt;- predict(fit2,type=&quot;link&quot;)
+ggplot()+geom_density(aes(x=logit,fill=df$income,group=df$income),alpha=0.4)+scale_fill_discrete(name=&quot;income&quot;)</code></pre>
+<p><img src="/project/project2_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="perform-a-logistic-regression-predicting-the-same-binary-response-variable-from-all-of-the-rest-of-the-variables" class="section level1">
+<h1>6. Perform a logistic regression predicting the same binary response variable from ALL of the rest of the variables</h1>
+<pre class="r"><code>fit3 &lt;- glm(income~., data=df5, family=&quot;binomial&quot;)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                             Estimate  Std. Error  z value
+## (Intercept)                              -7.3328e+00  6.8621e-01 -10.6860
+## age                                       2.6234e-02  1.6603e-03  15.8001
+## workclassLocal-gov                       -7.0201e-01  1.1135e-01  -6.3043
+## workclassPrivate                         -4.9329e-01  9.2826e-02  -5.3142
+## workclassSelf-emp-inc                    -3.0414e-01  1.2344e-01  -2.4638
+## workclassSelf-emp-not-inc                -9.5350e-01  1.0911e-01  -8.7392
+## workclassState-gov                       -8.0291e-01  1.2378e-01  -6.4867
+## workclassWithout-pay                     -1.2232e+01  1.1946e+02  -0.1024
+## educatoin_num                             2.8303e-01  9.6431e-03  29.3505
+## marital_statusMarried-AF-spouse           3.0436e+00  5.0550e-01   6.0209
+## marital_statusMarried-civ-spouse          2.1726e+00  6.7728e-02  32.0784
+## marital_statusMarried-spouse-absent       5.0220e-02  2.3592e-01   0.2129
+## marital_statusNever-married              -4.9500e-01  8.3430e-02  -5.9331
+## marital_statusSeparated                  -7.4127e-02  1.6129e-01  -0.4596
+## marital_statusWidowed                     2.9961e-02  1.5438e-01   0.1941
+## occupationArmed-Forces                   -1.1450e+00  1.5192e+00  -0.7537
+## occupationCraft-repair                   -1.2584e-03  7.9165e-02  -0.0159
+## occupationExec-managerial                 7.7858e-01  7.5681e-02  10.2876
+## occupationFarming-fishing                -1.1005e+00  1.4072e-01  -7.8206
+## occupationHandlers-cleaners              -7.4772e-01  1.4388e-01  -5.1968
+## occupationMachine-op-inspct              -3.0378e-01  1.0133e-01  -2.9979
+## occupationOther-service                  -8.3098e-01  1.1767e-01  -7.0620
+## occupationPriv-house-serv                -4.4807e+00  1.6876e+00  -2.6551
+## occupationProf-specialty                  5.4961e-01  7.8707e-02   6.9829
+## occupationProtective-serv                 5.5348e-01  1.2578e-01   4.4003
+## occupationSales                           2.4327e-01  8.1373e-02   2.9896
+## occupationTech-support                    6.0665e-01  1.0953e-01   5.5387
+## occupationTransport-moving               -1.3480e-01  9.8873e-02  -1.3634
+## raceAsian-Pac-Islander                    7.7009e-01  2.8158e-01   2.7349
+## raceBlack                                 5.0878e-01  2.3652e-01   2.1511
+## raceOther                                 1.1590e-01  3.7913e-01   0.3057
+## raceWhite                                 6.2300e-01  2.2564e-01   2.7610
+## sexMale                                   1.6555e-01  5.3836e-02   3.0750
+## capital_gain                              3.2039e-04  1.0556e-05  30.3523
+## capital_loss                              6.5144e-04  3.8290e-05  17.0132
+## hours_per_week                            2.9585e-02  1.6807e-03  17.6021
+## native_countryCanada                     -8.3635e-01  6.8368e-01  -1.2233
+## native_countryChina                      -1.8769e+00  6.9831e-01  -2.6878
+## native_countryColumbia                   -3.3093e+00  1.0192e+00  -3.2470
+## native_countryCuba                       -8.1859e-01  6.9501e-01  -1.1778
+## native_countryDominican-Republic         -2.8302e+00  1.2206e+00  -2.3187
+## native_countryEcuador                    -1.4778e+00  9.5249e-01  -1.5515
+## native_countryEl-Salvador                -1.7334e+00  7.8912e-01  -2.1967
+## native_countryEngland                    -8.8553e-01  6.9522e-01  -1.2738
+## native_countryFrance                     -5.5892e-01  8.0910e-01  -0.6908
+## native_countryGermany                    -7.7121e-01  6.7172e-01  -1.1481
+## native_countryGreece                     -2.2220e+00  8.3186e-01  -2.6711
+## native_countryGuatemala                  -1.3651e+00  9.7743e-01  -1.3966
+## native_countryHaiti                      -1.2709e+00  9.0846e-01  -1.3990
+## native_countryHonduras                   -1.9621e+00  2.2546e+00  -0.8703
+## native_countryHong                       -1.2531e+00  8.9382e-01  -1.4020
+## native_countryHungary                    -1.3796e+00  9.9526e-01  -1.3862
+## native_countryIndia                      -1.6427e+00  6.6494e-01  -2.4704
+## native_countryIran                       -1.2123e+00  7.5374e-01  -1.6084
+## native_countryIreland                    -7.4650e-01  8.9691e-01  -0.8323
+## native_countryItaly                      -3.2730e-01  7.0658e-01  -0.4632
+## native_countryJamaica                    -1.2029e+00  7.6449e-01  -1.5735
+## native_countryJapan                      -9.7527e-01  7.2350e-01  -1.3480
+## native_countryLaos                       -1.6891e+00  1.0342e+00  -1.6333
+## native_countryMexico                     -1.5937e+00  6.6089e-01  -2.4114
+## native_countryNicaragua                  -1.7506e+00  1.0072e+00  -1.7381
+## native_countryOutlying-US(Guam-USVI-etc) -1.2290e+01  1.2970e+02  -0.0948
+## native_countryPeru                       -1.9806e+00  1.0573e+00  -1.8732
+## native_countryPhilippines                -9.4221e-01  6.3819e-01  -1.4764
+## native_countryPoland                     -1.2271e+00  7.4053e-01  -1.6570
+## native_countryPortugal                   -1.0468e+00  8.8740e-01  -1.1796
+## native_countryPuerto-Rico                -1.3997e+00  7.3301e-01  -1.9095
+## native_countryScotland                   -1.2877e+00  1.1142e+00  -1.1557
+## native_countrySouth                      -2.3736e+00  7.3000e-01  -3.2515
+## native_countryTaiwan                     -1.3288e+00  7.4107e-01  -1.7931
+## native_countryThailand                   -1.8067e+00  9.8562e-01  -1.8330
+## native_countryTrinadad&amp;Tobago            -1.5049e+00  1.0577e+00  -1.4228
+## native_countryUnited-States              -1.0237e+00  6.2506e-01  -1.6378
+## native_countryVietnam                    -2.4653e+00  8.4528e-01  -2.9166
+## native_countryYugoslavia                 -5.9188e-01  9.2276e-01  -0.6414
+##                                           Pr(&gt;|z|)    
+## (Intercept)                              &lt; 2.2e-16 ***
+## age                                      &lt; 2.2e-16 ***
+## workclassLocal-gov                       2.894e-10 ***
+## workclassPrivate                         1.071e-07 ***
+## workclassSelf-emp-inc                     0.013746 *  
+## workclassSelf-emp-not-inc                &lt; 2.2e-16 ***
+## workclassState-gov                       8.772e-11 ***
+## workclassWithout-pay                      0.918442    
+## educatoin_num                            &lt; 2.2e-16 ***
+## marital_statusMarried-AF-spouse          1.735e-09 ***
+## marital_statusMarried-civ-spouse         &lt; 2.2e-16 ***
+## marital_statusMarried-spouse-absent       0.831433    
+## marital_statusNever-married              2.972e-09 ***
+## marital_statusSeparated                   0.645808    
+## marital_statusWidowed                     0.846120    
+## occupationArmed-Forces                    0.451024    
+## occupationCraft-repair                    0.987318    
+## occupationExec-managerial                &lt; 2.2e-16 ***
+## occupationFarming-fishing                5.257e-15 ***
+## occupationHandlers-cleaners              2.028e-07 ***
+## occupationMachine-op-inspct               0.002718 ** 
+## occupationOther-service                  1.641e-12 ***
+## occupationPriv-house-serv                 0.007928 ** 
+## occupationProf-specialty                 2.891e-12 ***
+## occupationProtective-serv                1.081e-05 ***
+## occupationSales                           0.002794 ** 
+## occupationTech-support                   3.047e-08 ***
+## occupationTransport-moving                0.172764    
+## raceAsian-Pac-Islander                    0.006240 ** 
+## raceBlack                                 0.031465 *  
+## raceOther                                 0.759835    
+## raceWhite                                 0.005763 ** 
+## sexMale                                   0.002105 ** 
+## capital_gain                             &lt; 2.2e-16 ***
+## capital_loss                             &lt; 2.2e-16 ***
+## hours_per_week                           &lt; 2.2e-16 ***
+## native_countryCanada                      0.221213    
+## native_countryChina                       0.007192 ** 
+## native_countryColumbia                    0.001166 ** 
+## native_countryCuba                        0.238877    
+## native_countryDominican-Republic          0.020409 *  
+## native_countryEcuador                     0.120778    
+## native_countryEl-Salvador                 0.028043 *  
+## native_countryEngland                     0.202751    
+## native_countryFrance                      0.489694    
+## native_countryGermany                     0.250924    
+## native_countryGreece                      0.007560 ** 
+## native_countryGuatemala                   0.162537    
+## native_countryHaiti                       0.161826    
+## native_countryHonduras                    0.384158    
+## native_countryHong                        0.160913    
+## native_countryHungary                     0.165688    
+## native_countryIndia                       0.013496 *  
+## native_countryIran                        0.107738    
+## native_countryIreland                     0.405236    
+## native_countryItaly                       0.643212    
+## native_countryJamaica                     0.115600    
+## native_countryJapan                       0.177664    
+## native_countryLaos                        0.102407    
+## native_countryMexico                      0.015891 *  
+## native_countryNicaragua                   0.082186 .  
+## native_countryOutlying-US(Guam-USVI-etc)  0.924508    
+## native_countryPeru                        0.061035 .  
+## native_countryPhilippines                 0.139845    
+## native_countryPoland                      0.097510 .  
+## native_countryPortugal                    0.238157    
+## native_countryPuerto-Rico                 0.056201 .  
+## native_countryScotland                    0.247789    
+## native_countrySouth                       0.001148 ** 
+## native_countryTaiwan                      0.072951 .  
+## native_countryThailand                    0.066798 .  
+## native_countryTrinadad&amp;Tobago             0.154802    
+## native_countryUnited-States               0.101467    
+## native_countryVietnam                     0.003539 ** 
+## native_countryYugoslavia                  0.521244    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>prob &lt;- predict(fit3, type = &quot;response&quot;)</code></pre>
+<pre class="r"><code># compute in-sample classification diagnostics
+class_diag&lt;-function(probs,truth){
+  
+  tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+class_diag(prob, df5$income)</code></pre>
+<pre><code>##         acc      sens      spec      ppv       auc
+## 1 0.8487119 0.6062866 0.9290602 0.739081 0.9037112</code></pre>
+<p>Based on the rules, 0.904 AUC means the model performing is great.</p>
+<pre class="r"><code># Perform 10-fold CV with the same model
+set.seed(1234)
+k=10
+data &lt;- df5 %&gt;% sample_frac #put rows of dataset in random order
+folds &lt;- ntile(1:nrow(data),n=10) #create fold labels
+diags&lt;-NULL
+for(i in 1:k){
+  train &lt;- data[folds!=i,] #create training set (all but fold i)
+  test &lt;- data[folds==i,] #create test set (just fold i)
+  truth &lt;- test$income #save truth labels from fold i
+  fit &lt;- glm(income~., data=train, family=&quot;binomial&quot;)
+  probs &lt;- predict(fit, newdata=test, type=&quot;response&quot;)
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>summarize_all(diags,mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.8481153 0.6056914 0.9284981 0.7374765 0.9017086</code></pre>
+<p>There is a 90.17% probability that a randomly selected person with income&gt;50K has a higher predicted probability than a randomly selected person with income&lt;=50K.<br />
+Based on the rules, 0.902 AUC means the model performing is great. Compared to the in-sample metrics, the AUC of 10-fold CV is slightly smaller.</p>
+<pre class="r"><code># Perform LASSO
+y &lt;- as.matrix(df5$income) #grab response
+x &lt;- model.matrix(fit3)[,-1] %&gt;% scale()
+
+cv &lt;- cv.glmnet(x,y,family=&quot;binomial&quot;)
+lasso &lt;- glmnet(x,y,family=&quot;binomial&quot;,lambda=cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 75 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                                     s0
+## (Intercept)                              -1.7280771812
+## age                                       0.3168914393
+## workclassLocal-gov                       -0.0116778312
+## workclassPrivate                          .           
+## workclassSelf-emp-inc                     0.0278489240
+## workclassSelf-emp-not-inc                -0.0939961291
+## workclassState-gov                       -0.0255741473
+## workclassWithout-pay                     -0.0037787210
+## educatoin_num                             0.7118603749
+## marital_statusMarried-AF-spouse           0.0615123435
+## marital_statusMarried-civ-spouse          1.0404576724
+## marital_statusMarried-spouse-absent       .           
+## marital_statusNever-married              -0.1761319139
+## marital_statusSeparated                   .           
+## marital_statusWidowed                     .           
+## occupationArmed-Forces                    .           
+## occupationCraft-repair                    .           
+## occupationExec-managerial                 0.2352218264
+## occupationFarming-fishing                -0.1563328349
+## occupationHandlers-cleaners              -0.0998997478
+## occupationMachine-op-inspct              -0.0478076395
+## occupationOther-service                  -0.2003053037
+## occupationPriv-house-serv                -0.0099763592
+## occupationProf-specialty                  0.1417524503
+## occupationProtective-serv                 0.0429654026
+## occupationSales                           0.0471434889
+## occupationTech-support                    0.0776560556
+## occupationTransport-moving               -0.0084827858
+## raceAsian-Pac-Islander                    .           
+## raceBlack                                 .           
+## raceOther                                -0.0043666137
+## raceWhite                                 0.0243158791
+## sexMale                                   0.0565737428
+## capital_gain                              1.8280536000
+## capital_loss                              0.2324054394
+## hours_per_week                            0.3158572035
+## native_countryCanada                      .           
+## native_countryChina                      -0.0003735412
+## native_countryColumbia                   -0.0242302222
+## native_countryCuba                        .           
+## native_countryDominican-Republic          .           
+## native_countryEcuador                     .           
+## native_countryEl-Salvador                 .           
+## native_countryEngland                     .           
+## native_countryFrance                      .           
+## native_countryGermany                     .           
+## native_countryGreece                     -0.0060199369
+## native_countryGuatemala                   .           
+## native_countryHaiti                       .           
+## native_countryHonduras                    .           
+## native_countryHong                        .           
+## native_countryHungary                     .           
+## native_countryIndia                       .           
+## native_countryIran                        .           
+## native_countryIreland                     .           
+## native_countryItaly                       0.0104237133
+## native_countryJamaica                     .           
+## native_countryJapan                       .           
+## native_countryLaos                        .           
+## native_countryMexico                     -0.0144380839
+## native_countryNicaragua                   .           
+## native_countryOutlying-US(Guam-USVI-etc)  .           
+## native_countryPeru                        .           
+## native_countryPhilippines                 .           
+## native_countryPoland                      .           
+## native_countryPortugal                    .           
+## native_countryPuerto-Rico                 .           
+## native_countryScotland                    .           
+## native_countrySouth                      -0.0161380442
+## native_countryTaiwan                      .           
+## native_countryThailand                    .           
+## native_countryTrinadad&amp;Tobago             .           
+## native_countryUnited-States               0.0156717942
+## native_countryVietnam                    -0.0006794237
+## native_countryYugoslavia                  .</code></pre>
+<pre class="r"><code># grab the variables with non-zero coefficient
+coef &lt;- coef(lasso) %&gt;% as.matrix() %&gt;% as.data.frame()
+coef &lt;- row.names(coef)[coef$s0!=0]
+
+df6 &lt;- df5 %&gt;% mutate(across(where(is.factor), as.character))
+names &lt;- colnames(df6 %&gt;% select_if(is.character))
+names &lt;- names[names!=&quot;sex&quot;] # I don&#39;t want to change sex because there are only two levels
+
+for(i in names){
+  non_sig &lt;- setdiff(df6[,i], gsub(i,&quot;&quot;,coef[grepl(i,coef)]))
+  df6[,i][df6[,i] %in% non_sig] &lt;- &quot;others&quot;
+}
+
+df6 &lt;- df6 %&gt;% mutate(across(where(is.character), as.factor))</code></pre>
+<p>All numeric variables are retained including age, educatoin_num, capital_gain, capital_loss and hours_per_week. Sex is also retained but for other categorical variables, only the elements with a non-zero coefficient are grabbed and retained.</p>
+<pre class="r"><code># Perform 10-fold CV using only the variables lasso selected
+set.seed(1234)
+k=10
+data &lt;- df6 %&gt;% sample_frac #put rows of dataset in random order
+folds &lt;- ntile(1:nrow(data),n=10) #create fold labels
+diags&lt;-NULL
+for(i in 1:k){
+  train &lt;- data[folds!=i,] #create training set (all but fold i)
+  test &lt;- data[folds==i,] #create test set (just fold i)
+  truth &lt;- test$income #save truth labels from fold i
+  fit &lt;- glm(income~., data=train, family=&quot;binomial&quot;)
+  probs &lt;- predict(fit, newdata=test, type=&quot;response&quot;)
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>summarize_all(diags,mean)</code></pre>
+<pre><code>##         acc      sens      spec      ppv       auc
+## 1 0.8470874 0.6020134 0.9283684 0.735955 0.9021286</code></pre>
+<p>Compared to previous model, this model’s out-of-sample AUC shows a slight increase from 0.9017 to 0.9021.<br />
+<br />
+</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

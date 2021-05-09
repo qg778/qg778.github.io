@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on My site</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on My site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 25 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>project2</title>
+      <link>/project/project2/</link>
+      <pubDate>Sun, 25 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>0. Introduce the dataset and the variables The adult dataset is from the 1994 Census database. It is also known as “Census Income” dataset. There are totally 32560 observations and 12 variables. After rows with missing values were removed, 30161 observations are left.
+1. age: the age of an individual 2. workclass: a general term to represent the employment status of an individual 3. education_num: the number of years of education in total 4.</description>
+    </item>
+    
+    <item>
+      <title>project1</title>
+      <link>/project/project1/</link>
+      <pubDate>Wed, 17 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>The two datasets were acquired from UCI Machine Learning Repository that record the hourly count of rental bikes between 2011 and 2012 in Capital bikeshare system and some other information including temperature, weather and so on. The first data frame “BikeSharing.csv” is tidy recording the rental bike count hourly daily during 2011 and 2012, and it also contains other information such as temperature, weather, etc. It has 17379 observations and 16 variables.</description>
+    </item>
+    
+  </channel>
+</rss>

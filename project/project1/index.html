@@ -1,0 +1,8742 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Qingqing Guo" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>project1</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project/project1/">project1</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         February 17, 2021 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>The two datasets were acquired from UCI Machine Learning Repository that record the hourly count of rental bikes between 2011 and 2012 in Capital bikeshare system and some other information including temperature, weather and so on. The first data frame “BikeSharing.csv” is tidy recording the rental bike count hourly daily during 2011 and 2012, and it also contains other information such as temperature, weather, etc. It has 17379 observations and 16 variables.<br />
+The second data frame “windspeed.csv” is not tidy recording the normalized wind speed hourly daily during 2011 and 2012. It has 731 observations and 25 variables with the first variable being the date and the 2-25 variables being the hour. The values recorded in the 2-25 columns are the wind speed at that specific time. After tidying there are totally 17544 observations and 3 variables representing date, hour and the corresponding wind speed, respectively.</p>
+<pre><code>variables of BikeSharing.csv
+1. instant: record index
+2. dteday: date
+3. season: season 
+4. yr: year 
+5. mnth: month (1 to 12)
+6. hr: hour (0 to 23)
+7. holiday: whether day is holiday or not 
+8. weekday: day of the week
+9. workingday: if day is neither weekend nor holiday is ‘yes’, otherwise is ‘no’.
+10. weathersit 
+11. temp: Normalized temperature in Celsius. The values are divided to 41 (max)
+12. atemp: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+14. casual: count of casual users
+15. registered: count of registered users
+16. cnt: count of total rental bikes including both casual and registered</code></pre>
+<pre><code>variables of windspeed.csv
+1. dteday: date
+2-25: hour, values in 2-25: the wind speed at that specific time</code></pre>
+<div id="tidy-data" class="section level1">
+<h1>1. Tidy data</h1>
+<pre class="r"><code>BikeSharing &lt;- read_csv(&quot;data/BikeSharing.csv&quot;)
+BikeSharing %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Rows: 17,379
+## Columns: 16
+## $ instant    &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, …
+## $ dteday     &lt;date&gt; 2011-01-01, 2011-01-01, 2011-01-01, 2011-01-01, 2011-01-01…
+## $ season     &lt;chr&gt; &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;,…
+## $ yr         &lt;dbl&gt; 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011,…
+## $ mnth       &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ hr         &lt;dbl&gt; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1…
+## $ holiday    &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;,…
+## $ weekday    &lt;dbl&gt; 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,…
+## $ workingday &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;,…
+## $ weathersit &lt;chr&gt; &quot;Clear / Few clouds / Partly cloudy&quot;, &quot;Clear / Few clouds /…
+## $ temp       &lt;dbl&gt; 0.24, 0.22, 0.22, 0.24, 0.24, 0.24, 0.22, 0.20, 0.24, 0.32,…
+## $ atemp      &lt;dbl&gt; 0.2879, 0.2727, 0.2727, 0.2879, 0.2879, 0.2576, 0.2727, 0.2…
+## $ hum        &lt;dbl&gt; 0.81, 0.80, 0.80, 0.75, 0.75, 0.75, 0.80, 0.86, 0.75, 0.76,…
+## $ casual     &lt;dbl&gt; 3, 8, 5, 3, 0, 0, 2, 1, 1, 8, 12, 26, 29, 47, 35, 40, 41, 1…
+## $ registered &lt;dbl&gt; 13, 32, 27, 10, 1, 1, 0, 2, 7, 6, 24, 30, 55, 47, 71, 70, 5…
+## $ cnt        &lt;dbl&gt; 16, 40, 32, 13, 1, 1, 2, 3, 8, 14, 36, 56, 84, 94, 106, 110…</code></pre>
+<pre class="r"><code>windspeed &lt;- read_csv(&quot;data/windspeed.csv&quot;)
+windspeed %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Rows: 731
+## Columns: 25
+## $ dteday &lt;date&gt; 2011-01-01, 2011-01-02, 2011-01-03, 2011-01-04, 2011-01-05, 20…
+## $ `0`    &lt;dbl&gt; 0.0000, 0.2985, 0.3582, 0.1045, 0.0000, 0.0000, 0.1940, 0.1642,…
+## $ `1`    &lt;dbl&gt; 0.0000, 0.2537, 0.4179, 0.1045, 0.0896, 0.0000, 0.2239, 0.0896,…
+## $ `2`    &lt;dbl&gt; 0.0000, 0.2836, NA, 0.1343, 0.0896, 0.0000, 0.2239, 0.0000, 0.4…
+## $ `3`    &lt;dbl&gt; 0.0000, 0.1940, NA, NA, NA, NA, NA, 0.1642, 0.4179, 0.2239, NA,…
+## $ `4`    &lt;dbl&gt; 0.0000, 0.1940, 0.3881, 0.0896, 0.2239, 0.0896, 0.1343, 0.1642,…
+## $ `5`    &lt;dbl&gt; 0.0896, NA, 0.2836, 0.1045, 0.1642, 0.0896, 0.0000, 0.1642, 0.1…
+## $ `6`    &lt;dbl&gt; 0.0000, 0.2985, 0.3881, 0.1045, 0.2239, 0.1045, 0.0000, 0.1642,…
+## $ `7`    &lt;dbl&gt; 0.0000, 0.1940, 0.1940, 0.1343, 0.1940, 0.0000, 0.1343, 0.1045,…
+## $ `8`    &lt;dbl&gt; 0.0000, 0.2239, 0.2836, 0.1642, 0.2985, 0.0000, 0.2537, 0.1045,…
+## $ `9`    &lt;dbl&gt; 0.0000, 0.2239, 0.3881, 0.2239, 0.3284, 0.0000, 0.2985, 0.1045,…
+## $ `10`   &lt;dbl&gt; 0.2537, 0.2239, 0.2537, 0.3284, 0.3284, 0.0000, 0.3284, 0.1642,…
+## $ `11`   &lt;dbl&gt; 0.2836, 0.2537, 0.3284, 0.2985, 0.3284, 0.0896, 0.2239, 0.3881,…
+## $ `12`   &lt;dbl&gt; 0.2836, 0.2985, 0.2985, 0.1642, 0.3284, 0.0000, 0.2537, 0.3582,…
+## $ `13`   &lt;dbl&gt; 0.2985, 0.1343, 0.2836, 0.1940, 0.2985, 0.1045, 0.2836, 0.3284,…
+## $ `14`   &lt;dbl&gt; 0.2836, 0.1940, 0.2836, 0.2239, 0.1940, 0.1642, 0.2537, 0.4925,…
+## $ `15`   &lt;dbl&gt; 0.2985, 0.1642, 0.2537, 0.2537, 0.1940, 0.0000, 0.1642, 0.4478,…
+## $ `16`   &lt;dbl&gt; 0.2985, 0.1642, 0.2537, 0.2537, 0.0896, 0.1642, 0.1642, 0.4478,…
+## $ `17`   &lt;dbl&gt; 0.2836, 0.1940, 0.2239, 0.2239, 0.1940, 0.1642, 0.0000, 0.5522,…
+## $ `18`   &lt;dbl&gt; 0.2537, 0.3284, 0.1045, 0.1940, 0.1343, 0.1343, 0.0896, 0.2985,…
+## $ `19`   &lt;dbl&gt; 0.2537, 0.4478, 0.0000, 0.1045, 0.1045, 0.0896, 0.0896, 0.2537,…
+## $ `20`   &lt;dbl&gt; 0.2537, 0.3582, 0.1045, 0.1045, 0.1642, 0.1642, 0.1045, 0.2537,…
+## $ `21`   &lt;dbl&gt; 0.1940, 0.3284, 0.1343, 0.0000, 0.1940, 0.2239, 0.1343, 0.3582,…
+## $ `22`   &lt;dbl&gt; 0.2239, 0.2985, 0.1343, 0.0896, 0.1343, 0.2836, 0.1642, 0.3881,…
+## $ `23`   &lt;dbl&gt; 0.2985, 0.1642, 0.1045, 0.0896, 0.0000, 0.1940, 0.1642, 0.4478,…</code></pre>
+<pre class="r"><code># Tidy with gather()
+windspeed &lt;- windspeed %&gt;%
+    gather(hr, windspeed, -1) %&gt;%
+    mutate(hr = as.double(hr))
+windspeed %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Rows: 17,544
+## Columns: 3
+## $ dteday    &lt;date&gt; 2011-01-01, 2011-01-02, 2011-01-03, 2011-01-04, 2011-01-05,…
+## $ hr        &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+## $ windspeed &lt;dbl&gt; 0.0000, 0.2985, 0.3582, 0.1045, 0.0000, 0.0000, 0.1940, 0.16…</code></pre>
+</div>
+<div id="join-data" class="section level1">
+<h1>2. Join data</h1>
+<pre class="r"><code># Join the two separate data
+df &lt;- BikeSharing %&gt;%
+    left_join(windspeed, by = c(dteday = &quot;dteday&quot;, hr = &quot;hr&quot;))
+df &lt;- df[, c(1:13, 17, 14:16)]
+df %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Rows: 17,379
+## Columns: 17
+## $ instant    &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, …
+## $ dteday     &lt;date&gt; 2011-01-01, 2011-01-01, 2011-01-01, 2011-01-01, 2011-01-01…
+## $ season     &lt;chr&gt; &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;, &quot;winter&quot;,…
+## $ yr         &lt;dbl&gt; 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011, 2011,…
+## $ mnth       &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ hr         &lt;dbl&gt; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1…
+## $ holiday    &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;,…
+## $ weekday    &lt;dbl&gt; 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,…
+## $ workingday &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;,…
+## $ weathersit &lt;chr&gt; &quot;Clear / Few clouds / Partly cloudy&quot;, &quot;Clear / Few clouds /…
+## $ temp       &lt;dbl&gt; 0.24, 0.22, 0.22, 0.24, 0.24, 0.24, 0.22, 0.20, 0.24, 0.32,…
+## $ atemp      &lt;dbl&gt; 0.2879, 0.2727, 0.2727, 0.2879, 0.2879, 0.2576, 0.2727, 0.2…
+## $ hum        &lt;dbl&gt; 0.81, 0.80, 0.80, 0.75, 0.75, 0.75, 0.80, 0.86, 0.75, 0.76,…
+## $ windspeed  &lt;dbl&gt; 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0896, 0.0000, 0.0…
+## $ casual     &lt;dbl&gt; 3, 8, 5, 3, 0, 0, 2, 1, 1, 8, 12, 26, 29, 47, 35, 40, 41, 1…
+## $ registered &lt;dbl&gt; 13, 32, 27, 10, 1, 1, 0, 2, 7, 6, 24, 30, 55, 47, 71, 70, 5…
+## $ cnt        &lt;dbl&gt; 16, 40, 32, 13, 1, 1, 2, 3, 8, 14, 36, 56, 84, 94, 106, 110…</code></pre>
+<p>There are 17379 observations in BikeSharing and 17544 observations in the tidy version windspeed. The two data were merged by left join, based on the information of the two variables, date and hour. During joining, the rows with the combination of date and hour not in the BikeSharing data were dropped. I decided to merge the data in this way because I need all of the information in the BikeSharing data frame but only the wind speed values that can match with the previous one.</p>
+<pre class="r"><code>df &lt;- df %&gt;%
+    mutate(instant = factor(instant, levels = instant), yr = factor(yr, 
+        levels = unique(df$yr)), mnth = factor(mnth, levels = 1:12), 
+        hr = factor(hr, levels = c(1:23, 0)), weekday = factor(weekday, 
+            levels = c(1:6, 0)), weathersit = factor(weathersit, 
+            levels = unique(df$weathersit)))</code></pre>
+</div>
+<div id="create-summary-statistics" class="section level1">
+<h1>3. Create summary statistics</h1>
+<div id="use-all-six-core-dplyr-functions-filter-select-arrange-group_by-mutate-summarize-to-manipulate-and-explore-dataset" class="section level2">
+<h2>Use all six core dplyr functions (filter, select, arrange, group_by, mutate, summarize) to manipulate and explore dataset</h2>
+<pre class="r"><code>df &lt;- df %&gt;%
+    mutate(casual_perc = casual/cnt) %&gt;%
+    mutate(registered_perc = registered/cnt)</code></pre>
+<pre class="r"><code>df1 &lt;- df %&gt;%
+    select(instant, windspeed) %&gt;%
+    mutate(windspeed_rank = case_when(windspeed &gt; quantile(windspeed, 
+        probs = 0.75) ~ &quot;high&quot;, windspeed &gt;= quantile(windspeed, 
+        probs = 0.25) &amp; windspeed &lt;= quantile(windspeed, probs = 0.75) ~ 
+        &quot;mid&quot;, windspeed &lt; quantile(windspeed, probs = 0.25) ~ 
+        &quot;low&quot;))
+df &lt;- left_join(df, df1[, -2], by = c(instant = &quot;instant&quot;))
+df &lt;- df %&gt;%
+    mutate(windspeed_rank = factor(windspeed_rank, levels = c(&quot;low&quot;, 
+        &quot;mid&quot;, &quot;high&quot;)))</code></pre>
+<pre class="r"><code>df %&gt;%
+    filter(yr == 2011) %&gt;%
+    select(weathersit, cnt) %&gt;%
+    dplyr::group_by(weathersit) %&gt;%
+    dplyr::summarize(cnt_mean = mean(cnt)) %&gt;%
+    arrange(desc(cnt_mean))</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   weathersit                                                            cnt_mean
+##   &lt;fct&gt;                                                                    &lt;dbl&gt;
+## 1 Clear / Few clouds / Partly cloudy                                       155. 
+## 2 Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist          135. 
+## 3 Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Ra…     86.4
+## 4 Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog               36</code></pre>
+<pre class="r"><code>df %&gt;%
+    dplyr::group_by(season) %&gt;%
+    dplyr::summarize(cnt_mean = mean(cnt), registered_mean = mean(registered), 
+        casual_mean = mean(casual))</code></pre>
+<pre><code>## # A tibble: 4 x 4
+##   season cnt_mean registered_mean casual_mean
+##   &lt;chr&gt;     &lt;dbl&gt;           &lt;dbl&gt;       &lt;dbl&gt;
+## 1 fall       199.           168.         30.7
+## 2 spring     208.           162.         46.2
+## 3 summer     236.           186.         50.3
+## 4 winter     111.            96.8        14.3</code></pre>
+<pre class="r"><code>df_num &lt;- df %&gt;%
+    select_if(is.numeric)</code></pre>
+</div>
+<div id="create-summary-statistics-for-each-of-the-numeric-variables-overall" class="section level2">
+<h2>Create summary statistics for each of the numeric variables overall</h2>
+<pre class="r"><code>summ &lt;- list()
+for (i in colnames(df_num)) {
+    per &lt;- df %&gt;%
+        summarise_at(vars(all_of(i)), funs(n(), n_distinct, mean, 
+            sd, var, min, Q1 = quantile(., probs = 0.25), median, 
+            Q3 = quantile(., probs = 0.75), max, se = sd/sqrt(n), 
+            lower.ci = mean - qt(1 - (0.05/2), n - 1) * se, upper.ci = mean + 
+                qt(1 - (0.05/2), n - 1) * se))
+    summ[[i]] &lt;- per
+}
+
+tbl &lt;- do.call(&quot;rbind&quot;, summ) %&gt;%
+    kable(&quot;html&quot;, caption = &quot;overall summary&quot;) %&gt;%
+    kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;), 
+        full_width = F, position = &quot;left&quot;, font_size = 10)
+tbl</code></pre>
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-10">Table 1: </span>overall summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+n_distinct
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+sd
+</th>
+<th style="text-align:right;">
+var
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+Q1
+</th>
+<th style="text-align:right;">
+median
+</th>
+<th style="text-align:right;">
+Q3
+</th>
+<th style="text-align:right;">
+max
+</th>
+<th style="text-align:right;">
+se
+</th>
+<th style="text-align:right;">
+lower.ci
+</th>
+<th style="text-align:right;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+temp
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+0.4969872
+</td>
+<td style="text-align:right;">
+0.1925561
+</td>
+<td style="text-align:right;">
+3.707790e-02
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.3400000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.6600000
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0014606
+</td>
+<td style="text-align:right;">
+0.4941242
+</td>
+<td style="text-align:right;">
+0.4998502
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+atemp
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+65
+</td>
+<td style="text-align:right;">
+0.4757751
+</td>
+<td style="text-align:right;">
+0.1718502
+</td>
+<td style="text-align:right;">
+2.953250e-02
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.3333000
+</td>
+<td style="text-align:right;">
+0.4848000
+</td>
+<td style="text-align:right;">
+0.6212000
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0013036
+</td>
+<td style="text-align:right;">
+0.4732200
+</td>
+<td style="text-align:right;">
+0.4783302
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hum
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+89
+</td>
+<td style="text-align:right;">
+0.6272288
+</td>
+<td style="text-align:right;">
+0.1929298
+</td>
+<td style="text-align:right;">
+3.722190e-02
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.4800000
+</td>
+<td style="text-align:right;">
+0.6300000
+</td>
+<td style="text-align:right;">
+0.7800000
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0014635
+</td>
+<td style="text-align:right;">
+0.6243603
+</td>
+<td style="text-align:right;">
+0.6300974
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+windspeed
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+0.1900976
+</td>
+<td style="text-align:right;">
+0.1223402
+</td>
+<td style="text-align:right;">
+1.496710e-02
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.1045000
+</td>
+<td style="text-align:right;">
+0.1940000
+</td>
+<td style="text-align:right;">
+0.2537000
+</td>
+<td style="text-align:right;">
+0.8507
+</td>
+<td style="text-align:right;">
+0.0009280
+</td>
+<td style="text-align:right;">
+0.1882786
+</td>
+<td style="text-align:right;">
+0.1919166
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+casual
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+322
+</td>
+<td style="text-align:right;">
+35.6762184
+</td>
+<td style="text-align:right;">
+49.3050304
+</td>
+<td style="text-align:right;">
+2.430986e+03
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+4.0000000
+</td>
+<td style="text-align:right;">
+17.0000000
+</td>
+<td style="text-align:right;">
+48.0000000
+</td>
+<td style="text-align:right;">
+367.0000
+</td>
+<td style="text-align:right;">
+0.3740062
+</td>
+<td style="text-align:right;">
+34.9431286
+</td>
+<td style="text-align:right;">
+36.4093082
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+registered
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+776
+</td>
+<td style="text-align:right;">
+153.7868692
+</td>
+<td style="text-align:right;">
+151.3572859
+</td>
+<td style="text-align:right;">
+2.290903e+04
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+34.0000000
+</td>
+<td style="text-align:right;">
+115.0000000
+</td>
+<td style="text-align:right;">
+220.0000000
+</td>
+<td style="text-align:right;">
+886.0000
+</td>
+<td style="text-align:right;">
+1.1481297
+</td>
+<td style="text-align:right;">
+151.5364197
+</td>
+<td style="text-align:right;">
+156.0373188
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cnt
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+869
+</td>
+<td style="text-align:right;">
+189.4630876
+</td>
+<td style="text-align:right;">
+181.3875991
+</td>
+<td style="text-align:right;">
+3.290146e+04
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+40.0000000
+</td>
+<td style="text-align:right;">
+142.0000000
+</td>
+<td style="text-align:right;">
+281.0000000
+</td>
+<td style="text-align:right;">
+977.0000
+</td>
+<td style="text-align:right;">
+1.3759264
+</td>
+<td style="text-align:right;">
+186.7661336
+</td>
+<td style="text-align:right;">
+192.1600416
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+casual_perc
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+7376
+</td>
+<td style="text-align:right;">
+0.1721426
+</td>
+<td style="text-align:right;">
+0.1365572
+</td>
+<td style="text-align:right;">
+1.864790e-02
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.0634921
+</td>
+<td style="text-align:right;">
+0.1468927
+</td>
+<td style="text-align:right;">
+0.2537313
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0010359
+</td>
+<td style="text-align:right;">
+0.1701122
+</td>
+<td style="text-align:right;">
+0.1741730
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+registered_perc
+</td>
+<td style="text-align:right;">
+17379
+</td>
+<td style="text-align:right;">
+7376
+</td>
+<td style="text-align:right;">
+0.8278574
+</td>
+<td style="text-align:right;">
+0.1365572
+</td>
+<td style="text-align:right;">
+1.864790e-02
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.7462687
+</td>
+<td style="text-align:right;">
+0.8531073
+</td>
+<td style="text-align:right;">
+0.9365079
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0010359
+</td>
+<td style="text-align:right;">
+0.8258270
+</td>
+<td style="text-align:right;">
+0.8298878
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="create-summary-statistics-for-each-of-the-numeric-variables-after-grouping-by-categorical-variables" class="section level2">
+<h2>Create summary statistics for each of the numeric variables after grouping by categorical variables</h2>
+<pre class="r"><code>for (i in colnames(df_num)) {
+    per &lt;- df %&gt;%
+        dplyr::group_by(yr, weathersit) %&gt;%
+        summarise_at(vars(i), funs(n(), n_distinct, mean, sd, 
+            var, min, Q1 = quantile(., probs = 0.25), median, 
+            Q3 = quantile(., probs = 0.75), max, se = sd/sqrt(n), 
+            lower.ci = mean - qt(1 - (0.05/2), n - 1) * se, upper.ci = mean + 
+                qt(1 - (0.05/2), n - 1) * se)) %&gt;%
+        kable(&quot;html&quot;, caption = paste(i, &quot;grouped by year and weathersit&quot;, 
+            sep = &quot;, &quot;)) %&gt;%
+        kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, 
+            &quot;condensed&quot;), full_width = F, position = &quot;left&quot;, 
+            font_size = 10) %&gt;%
+        scroll_box(width = &quot;900px&quot;, height = &quot;300px&quot;)
+    print(per)
+}</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>temp, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+48
+</td>
+<td style="text-align:right;">
+0.5017219
+</td>
+<td style="text-align:right;">
+0.2091707
+</td>
+<td style="text-align:right;">
+0.0437524
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.320
+</td>
+<td style="text-align:right;">
+0.52
+</td>
+<td style="text-align:right;">
+0.680
+</td>
+<td style="text-align:right;">
+0.96
+</td>
+<td style="text-align:right;">
+0.0027840
+</td>
+<td style="text-align:right;">
+0.4962642
+</td>
+<td style="text-align:right;">
+0.5071796
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+42
+</td>
+<td style="text-align:right;">
+0.4709648
+</td>
+<td style="text-align:right;">
+0.1767298
+</td>
+<td style="text-align:right;">
+0.0312334
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.340
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.620
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.0037526
+</td>
+<td style="text-align:right;">
+0.4636059
+</td>
+<td style="text-align:right;">
+0.4783238
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+0.4493726
+</td>
+<td style="text-align:right;">
+0.1583933
+</td>
+<td style="text-align:right;">
+0.0250885
+</td>
+<td style="text-align:right;">
+0.14
+</td>
+<td style="text-align:right;">
+0.340
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+0.580
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.0056678
+</td>
+<td style="text-align:right;">
+0.4382467
+</td>
+<td style="text-align:right;">
+0.4604985
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.2200000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.22
+</td>
+<td style="text-align:right;">
+0.220
+</td>
+<td style="text-align:right;">
+0.22
+</td>
+<td style="text-align:right;">
+0.220
+</td>
+<td style="text-align:right;">
+0.22
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+0.5201872
+</td>
+<td style="text-align:right;">
+0.1917829
+</td>
+<td style="text-align:right;">
+0.0367807
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.360
+</td>
+<td style="text-align:right;">
+0.52
+</td>
+<td style="text-align:right;">
+0.680
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0025252
+</td>
+<td style="text-align:right;">
+0.5152369
+</td>
+<td style="text-align:right;">
+0.5251376
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+0.4777644
+</td>
+<td style="text-align:right;">
+0.1751440
+</td>
+<td style="text-align:right;">
+0.0306754
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.320
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.620
+</td>
+<td style="text-align:right;">
+0.96
+</td>
+<td style="text-align:right;">
+0.0036315
+</td>
+<td style="text-align:right;">
+0.4706430
+</td>
+<td style="text-align:right;">
+0.4848858
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+0.4656426
+</td>
+<td style="text-align:right;">
+0.1627380
+</td>
+<td style="text-align:right;">
+0.0264837
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.340
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.600
+</td>
+<td style="text-align:right;">
+0.92
+</td>
+<td style="text-align:right;">
+0.0064429
+</td>
+<td style="text-align:right;">
+0.4529908
+</td>
+<td style="text-align:right;">
+0.4782944
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.1700000
+</td>
+<td style="text-align:right;">
+0.0424264
+</td>
+<td style="text-align:right;">
+0.0018000
+</td>
+<td style="text-align:right;">
+0.14
+</td>
+<td style="text-align:right;">
+0.155
+</td>
+<td style="text-align:right;">
+0.17
+</td>
+<td style="text-align:right;">
+0.185
+</td>
+<td style="text-align:right;">
+0.20
+</td>
+<td style="text-align:right;">
+0.0300000
+</td>
+<td style="text-align:right;">
+-0.2111861
+</td>
+<td style="text-align:right;">
+0.5511861
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>atemp, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+65
+</td>
+<td style="text-align:right;">
+0.4805063
+</td>
+<td style="text-align:right;">
+0.1866395
+</td>
+<td style="text-align:right;">
+0.0348343
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.318200
+</td>
+<td style="text-align:right;">
+0.50000
+</td>
+<td style="text-align:right;">
+0.636400
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0024841
+</td>
+<td style="text-align:right;">
+0.4756364
+</td>
+<td style="text-align:right;">
+0.4853761
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+0.4538025
+</td>
+<td style="text-align:right;">
+0.1579470
+</td>
+<td style="text-align:right;">
+0.0249473
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.318200
+</td>
+<td style="text-align:right;">
+0.45450
+</td>
+<td style="text-align:right;">
+0.575800
+</td>
+<td style="text-align:right;">
+0.8939
+</td>
+<td style="text-align:right;">
+0.0033538
+</td>
+<td style="text-align:right;">
+0.4472257
+</td>
+<td style="text-align:right;">
+0.4603793
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+45
+</td>
+<td style="text-align:right;">
+0.4293471
+</td>
+<td style="text-align:right;">
+0.1414155
+</td>
+<td style="text-align:right;">
+0.0199983
+</td>
+<td style="text-align:right;">
+0.1212
+</td>
+<td style="text-align:right;">
+0.318200
+</td>
+<td style="text-align:right;">
+0.43940
+</td>
+<td style="text-align:right;">
+0.530300
+</td>
+<td style="text-align:right;">
+0.8333
+</td>
+<td style="text-align:right;">
+0.0050602
+</td>
+<td style="text-align:right;">
+0.4194138
+</td>
+<td style="text-align:right;">
+0.4392804
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.1970000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.1970
+</td>
+<td style="text-align:right;">
+0.197000
+</td>
+<td style="text-align:right;">
+0.19700
+</td>
+<td style="text-align:right;">
+0.197000
+</td>
+<td style="text-align:right;">
+0.1970
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+0.4960988
+</td>
+<td style="text-align:right;">
+0.1707713
+</td>
+<td style="text-align:right;">
+0.0291628
+</td>
+<td style="text-align:right;">
+0.0152
+</td>
+<td style="text-align:right;">
+0.348500
+</td>
+<td style="text-align:right;">
+0.50000
+</td>
+<td style="text-align:right;">
+0.621200
+</td>
+<td style="text-align:right;">
+0.9242
+</td>
+<td style="text-align:right;">
+0.0022485
+</td>
+<td style="text-align:right;">
+0.4916908
+</td>
+<td style="text-align:right;">
+0.5005068
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+0.4592492
+</td>
+<td style="text-align:right;">
+0.1565948
+</td>
+<td style="text-align:right;">
+0.0245219
+</td>
+<td style="text-align:right;">
+0.0455
+</td>
+<td style="text-align:right;">
+0.318200
+</td>
+<td style="text-align:right;">
+0.45450
+</td>
+<td style="text-align:right;">
+0.590900
+</td>
+<td style="text-align:right;">
+0.8788
+</td>
+<td style="text-align:right;">
+0.0032469
+</td>
+<td style="text-align:right;">
+0.4528820
+</td>
+<td style="text-align:right;">
+0.4656164
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+46
+</td>
+<td style="text-align:right;">
+0.4450027
+</td>
+<td style="text-align:right;">
+0.1469266
+</td>
+<td style="text-align:right;">
+0.0215874
+</td>
+<td style="text-align:right;">
+0.0455
+</td>
+<td style="text-align:right;">
+0.333300
+</td>
+<td style="text-align:right;">
+0.45450
+</td>
+<td style="text-align:right;">
+0.545500
+</td>
+<td style="text-align:right;">
+0.8939
+</td>
+<td style="text-align:right;">
+0.0058169
+</td>
+<td style="text-align:right;">
+0.4335801
+</td>
+<td style="text-align:right;">
+0.4564252
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.1818500
+</td>
+<td style="text-align:right;">
+0.0642760
+</td>
+<td style="text-align:right;">
+0.0041314
+</td>
+<td style="text-align:right;">
+0.1364
+</td>
+<td style="text-align:right;">
+0.159125
+</td>
+<td style="text-align:right;">
+0.18185
+</td>
+<td style="text-align:right;">
+0.204575
+</td>
+<td style="text-align:right;">
+0.2273
+</td>
+<td style="text-align:right;">
+0.0454500
+</td>
+<td style="text-align:right;">
+-0.3956470
+</td>
+<td style="text-align:right;">
+0.7593470
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>hum, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+84
+</td>
+<td style="text-align:right;">
+0.5907972
+</td>
+<td style="text-align:right;">
+0.1800564
+</td>
+<td style="text-align:right;">
+0.0324203
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.45
+</td>
+<td style="text-align:right;">
+0.59
+</td>
+<td style="text-align:right;">
+0.74
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0023965
+</td>
+<td style="text-align:right;">
+0.5860991
+</td>
+<td style="text-align:right;">
+0.5954952
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+0.7075699
+</td>
+<td style="text-align:right;">
+0.1763462
+</td>
+<td style="text-align:right;">
+0.0310980
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.57
+</td>
+<td style="text-align:right;">
+0.72
+</td>
+<td style="text-align:right;">
+0.87
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0037444
+</td>
+<td style="text-align:right;">
+0.7002269
+</td>
+<td style="text-align:right;">
+0.7149128
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+49
+</td>
+<td style="text-align:right;">
+0.8413316
+</td>
+<td style="text-align:right;">
+0.1815369
+</td>
+<td style="text-align:right;">
+0.0329557
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+<td style="text-align:right;">
+0.88
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0064959
+</td>
+<td style="text-align:right;">
+0.8285801
+</td>
+<td style="text-align:right;">
+0.8540831
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.9300000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+77
+</td>
+<td style="text-align:right;">
+0.5570596
+</td>
+<td style="text-align:right;">
+0.1753068
+</td>
+<td style="text-align:right;">
+0.0307325
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.41
+</td>
+<td style="text-align:right;">
+0.55
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+<td style="text-align:right;">
+0.0023083
+</td>
+<td style="text-align:right;">
+0.5525346
+</td>
+<td style="text-align:right;">
+0.5615847
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+72
+</td>
+<td style="text-align:right;">
+0.6904514
+</td>
+<td style="text-align:right;">
+0.1683208
+</td>
+<td style="text-align:right;">
+0.0283319
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+<td style="text-align:right;">
+0.56
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+0.83
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0034901
+</td>
+<td style="text-align:right;">
+0.6836075
+</td>
+<td style="text-align:right;">
+0.6972954
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+0.8108621
+</td>
+<td style="text-align:right;">
+0.1194284
+</td>
+<td style="text-align:right;">
+0.0142631
+</td>
+<td style="text-align:right;">
+0.35
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+0.83
+</td>
+<td style="text-align:right;">
+0.88
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0047282
+</td>
+<td style="text-align:right;">
+0.8015773
+</td>
+<td style="text-align:right;">
+0.8201468
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.8600000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.8600000
+</td>
+<td style="text-align:right;">
+0.8600000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>windspeed, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+0.1896748
+</td>
+<td style="text-align:right;">
+0.1245985
+</td>
+<td style="text-align:right;">
+0.0155248
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.2836
+</td>
+<td style="text-align:right;">
+0.8060
+</td>
+<td style="text-align:right;">
+0.0016584
+</td>
+<td style="text-align:right;">
+0.1864237
+</td>
+<td style="text-align:right;">
+0.1929258
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+0.1836587
+</td>
+<td style="text-align:right;">
+0.1124851
+</td>
+<td style="text-align:right;">
+0.0126529
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.6119
+</td>
+<td style="text-align:right;">
+0.0023884
+</td>
+<td style="text-align:right;">
+0.1789748
+</td>
+<td style="text-align:right;">
+0.1883425
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+0.2231585
+</td>
+<td style="text-align:right;">
+0.1365925
+</td>
+<td style="text-align:right;">
+0.0186575
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1343
+</td>
+<td style="text-align:right;">
+0.2239
+</td>
+<td style="text-align:right;">
+0.2985
+</td>
+<td style="text-align:right;">
+0.8507
+</td>
+<td style="text-align:right;">
+0.0048877
+</td>
+<td style="text-align:right;">
+0.2135640
+</td>
+<td style="text-align:right;">
+0.2327530
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.3284000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.3284
+</td>
+<td style="text-align:right;">
+0.3284
+</td>
+<td style="text-align:right;">
+0.3284
+</td>
+<td style="text-align:right;">
+0.3284
+</td>
+<td style="text-align:right;">
+0.3284
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+0.1914127
+</td>
+<td style="text-align:right;">
+0.1229946
+</td>
+<td style="text-align:right;">
+0.0151277
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.8060
+</td>
+<td style="text-align:right;">
+0.0016195
+</td>
+<td style="text-align:right;">
+0.1882380
+</td>
+<td style="text-align:right;">
+0.1945875
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+0.1764593
+</td>
+<td style="text-align:right;">
+0.1162332
+</td>
+<td style="text-align:right;">
+0.0135102
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.7164
+</td>
+<td style="text-align:right;">
+0.0024100
+</td>
+<td style="text-align:right;">
+0.1717333
+</td>
+<td style="text-align:right;">
+0.1811854
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+0.2135194
+</td>
+<td style="text-align:right;">
+0.1218105
+</td>
+<td style="text-align:right;">
+0.0148378
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.1343
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.2836
+</td>
+<td style="text-align:right;">
+0.6567
+</td>
+<td style="text-align:right;">
+0.0048225
+</td>
+<td style="text-align:right;">
+0.2040495
+</td>
+<td style="text-align:right;">
+0.2229894
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.1418000
+</td>
+<td style="text-align:right;">
+0.0738219
+</td>
+<td style="text-align:right;">
+0.0054497
+</td>
+<td style="text-align:right;">
+0.0896
+</td>
+<td style="text-align:right;">
+0.1157
+</td>
+<td style="text-align:right;">
+0.1418
+</td>
+<td style="text-align:right;">
+0.1679
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.0522000
+</td>
+<td style="text-align:right;">
+-0.5214639
+</td>
+<td style="text-align:right;">
+0.8050639
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>casual, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+225
+</td>
+<td style="text-align:right;">
+32.54792
+</td>
+<td style="text-align:right;">
+41.873574
+</td>
+<td style="text-align:right;">
+1753.396
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+17.0
+</td>
+<td style="text-align:right;">
+45.00
+</td>
+<td style="text-align:right;">
+272
+</td>
+<td style="text-align:right;">
+0.5573244
+</td>
+<td style="text-align:right;">
+31.45535
+</td>
+<td style="text-align:right;">
+33.64049
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+160
+</td>
+<td style="text-align:right;">
+24.26014
+</td>
+<td style="text-align:right;">
+33.061682
+</td>
+<td style="text-align:right;">
+1093.075
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+13.0
+</td>
+<td style="text-align:right;">
+31.00
+</td>
+<td style="text-align:right;">
+245
+</td>
+<td style="text-align:right;">
+0.7020114
+</td>
+<td style="text-align:right;">
+22.88348
+</td>
+<td style="text-align:right;">
+25.63681
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+84
+</td>
+<td style="text-align:right;">
+12.43150
+</td>
+<td style="text-align:right;">
+22.251292
+</td>
+<td style="text-align:right;">
+495.120
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+13.00
+</td>
+<td style="text-align:right;">
+181
+</td>
+<td style="text-align:right;">
+0.7962138
+</td>
+<td style="text-align:right;">
+10.86852
+</td>
+<td style="text-align:right;">
+13.99447
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.00000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+313
+</td>
+<td style="text-align:right;">
+48.37240
+</td>
+<td style="text-align:right;">
+61.198659
+</td>
+<td style="text-align:right;">
+3745.276
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6.00
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+<td style="text-align:right;">
+69.00
+</td>
+<td style="text-align:right;">
+367
+</td>
+<td style="text-align:right;">
+0.8058037
+</td>
+<td style="text-align:right;">
+46.79272
+</td>
+<td style="text-align:right;">
+49.95208
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+196
+</td>
+<td style="text-align:right;">
+34.68272
+</td>
+<td style="text-align:right;">
+47.399296
+</td>
+<td style="text-align:right;">
+2246.693
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+17.0
+</td>
+<td style="text-align:right;">
+48.00
+</td>
+<td style="text-align:right;">
+350
+</td>
+<td style="text-align:right;">
+0.9828043
+</td>
+<td style="text-align:right;">
+32.75545
+</td>
+<td style="text-align:right;">
+36.60998
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+107
+</td>
+<td style="text-align:right;">
+20.49216
+</td>
+<td style="text-align:right;">
+36.928066
+</td>
+<td style="text-align:right;">
+1363.682
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2.00
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+21.00
+</td>
+<td style="text-align:right;">
+263
+</td>
+<td style="text-align:right;">
+1.4619961
+</td>
+<td style="text-align:right;">
+17.62125
+</td>
+<td style="text-align:right;">
+23.36308
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3.50000
+</td>
+<td style="text-align:right;">
+3.535534
+</td>
+<td style="text-align:right;">
+12.500
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2.25
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+2.5000000
+</td>
+<td style="text-align:right;">
+-28.26551
+</td>
+<td style="text-align:right;">
+35.26551
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>registered, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+490
+</td>
+<td style="text-align:right;">
+122.46590
+</td>
+<td style="text-align:right;">
+113.57615
+</td>
+<td style="text-align:right;">
+12899.542
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+98.0
+</td>
+<td style="text-align:right;">
+178.00
+</td>
+<td style="text-align:right;">
+567
+</td>
+<td style="text-align:right;">
+1.511664
+</td>
+<td style="text-align:right;">
+119.50246
+</td>
+<td style="text-align:right;">
+125.42934
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+382
+</td>
+<td style="text-align:right;">
+111.23084
+</td>
+<td style="text-align:right;">
+102.09903
+</td>
+<td style="text-align:right;">
+10424.213
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+158.00
+</td>
+<td style="text-align:right;">
+540
+</td>
+<td style="text-align:right;">
+2.167908
+</td>
+<td style="text-align:right;">
+106.97950
+</td>
+<td style="text-align:right;">
+115.48218
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+224
+</td>
+<td style="text-align:right;">
+73.98976
+</td>
+<td style="text-align:right;">
+87.62309
+</td>
+<td style="text-align:right;">
+7677.805
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+44.0
+</td>
+<td style="text-align:right;">
+102.00
+</td>
+<td style="text-align:right;">
+509
+</td>
+<td style="text-align:right;">
+3.135400
+</td>
+<td style="text-align:right;">
+67.83493
+</td>
+<td style="text-align:right;">
+80.14458
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+35.00000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+35.0
+</td>
+<td style="text-align:right;">
+35.00
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+736
+</td>
+<td style="text-align:right;">
+205.28918
+</td>
+<td style="text-align:right;">
+180.80548
+</td>
+<td style="text-align:right;">
+32690.621
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:right;">
+170.0
+</td>
+<td style="text-align:right;">
+297.00
+</td>
+<td style="text-align:right;">
+886
+</td>
+<td style="text-align:right;">
+2.380669
+</td>
+<td style="text-align:right;">
+200.62218
+</td>
+<td style="text-align:right;">
+209.95619
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+560
+</td>
+<td style="text-align:right;">
+178.31513
+</td>
+<td style="text-align:right;">
+165.76904
+</td>
+<td style="text-align:right;">
+27479.375
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+146.0
+</td>
+<td style="text-align:right;">
+258.00
+</td>
+<td style="text-align:right;">
+822
+</td>
+<td style="text-align:right;">
+3.437151
+</td>
+<td style="text-align:right;">
+171.57493
+</td>
+<td style="text-align:right;">
+185.05533
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+271
+</td>
+<td style="text-align:right;">
+121.88401
+</td>
+<td style="text-align:right;">
+136.59386
+</td>
+<td style="text-align:right;">
+18657.883
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+76.5
+</td>
+<td style="text-align:right;">
+167.75
+</td>
+<td style="text-align:right;">
+791
+</td>
+<td style="text-align:right;">
+5.407803
+</td>
+<td style="text-align:right;">
+111.26474
+</td>
+<td style="text-align:right;">
+132.50329
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+90.00000
+</td>
+<td style="text-align:right;">
+96.16652
+</td>
+<td style="text-align:right;">
+9248.000
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+90.0
+</td>
+<td style="text-align:right;">
+124.00
+</td>
+<td style="text-align:right;">
+158
+</td>
+<td style="text-align:right;">
+68.000000
+</td>
+<td style="text-align:right;">
+-774.02192
+</td>
+<td style="text-align:right;">
+954.02192
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>cnt, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+575
+</td>
+<td style="text-align:right;">
+155.01382
+</td>
+<td style="text-align:right;">
+140.02982
+</td>
+<td style="text-align:right;">
+19608.35
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+34.00
+</td>
+<td style="text-align:right;">
+122.0
+</td>
+<td style="text-align:right;">
+230.00
+</td>
+<td style="text-align:right;">
+651
+</td>
+<td style="text-align:right;">
+1.863754
+</td>
+<td style="text-align:right;">
+151.36014
+</td>
+<td style="text-align:right;">
+158.6675
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+444
+</td>
+<td style="text-align:right;">
+135.49098
+</td>
+<td style="text-align:right;">
+120.87712
+</td>
+<td style="text-align:right;">
+14611.28
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+36.00
+</td>
+<td style="text-align:right;">
+106.0
+</td>
+<td style="text-align:right;">
+196.75
+</td>
+<td style="text-align:right;">
+604
+</td>
+<td style="text-align:right;">
+2.566630
+</td>
+<td style="text-align:right;">
+130.45773
+</td>
+<td style="text-align:right;">
+140.5242
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+244
+</td>
+<td style="text-align:right;">
+86.42125
+</td>
+<td style="text-align:right;">
+102.75113
+</td>
+<td style="text-align:right;">
+10557.80
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+17.00
+</td>
+<td style="text-align:right;">
+50.0
+</td>
+<td style="text-align:right;">
+115.00
+</td>
+<td style="text-align:right;">
+579
+</td>
+<td style="text-align:right;">
+3.676725
+</td>
+<td style="text-align:right;">
+79.20381
+</td>
+<td style="text-align:right;">
+93.6387
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+36.00000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+36.00
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+36.00
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+844
+</td>
+<td style="text-align:right;">
+253.66158
+</td>
+<td style="text-align:right;">
+216.90419
+</td>
+<td style="text-align:right;">
+47047.43
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+65.00
+</td>
+<td style="text-align:right;">
+212.5
+</td>
+<td style="text-align:right;">
+378.00
+</td>
+<td style="text-align:right;">
+977
+</td>
+<td style="text-align:right;">
+2.855981
+</td>
+<td style="text-align:right;">
+248.06279
+</td>
+<td style="text-align:right;">
+259.2604
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+626
+</td>
+<td style="text-align:right;">
+212.99785
+</td>
+<td style="text-align:right;">
+191.33644
+</td>
+<td style="text-align:right;">
+36609.63
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+43.00
+</td>
+<td style="text-align:right;">
+174.0
+</td>
+<td style="text-align:right;">
+313.00
+</td>
+<td style="text-align:right;">
+957
+</td>
+<td style="text-align:right;">
+3.967280
+</td>
+<td style="text-align:right;">
+205.21807
+</td>
+<td style="text-align:right;">
+220.7776
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+293
+</td>
+<td style="text-align:right;">
+142.37618
+</td>
+<td style="text-align:right;">
+158.70335
+</td>
+<td style="text-align:right;">
+25186.75
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+32.25
+</td>
+<td style="text-align:right;">
+90.0
+</td>
+<td style="text-align:right;">
+204.75
+</td>
+<td style="text-align:right;">
+891
+</td>
+<td style="text-align:right;">
+6.283126
+</td>
+<td style="text-align:right;">
+130.03803
+</td>
+<td style="text-align:right;">
+154.7143
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+93.50000
+</td>
+<td style="text-align:right;">
+99.70206
+</td>
+<td style="text-align:right;">
+9940.50
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+58.25
+</td>
+<td style="text-align:right;">
+93.5
+</td>
+<td style="text-align:right;">
+128.75
+</td>
+<td style="text-align:right;">
+164
+</td>
+<td style="text-align:right;">
+70.500000
+</td>
+<td style="text-align:right;">
+-802.28743
+</td>
+<td style="text-align:right;">
+989.2874
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>casual_perc, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+2951
+</td>
+<td style="text-align:right;">
+0.1934732
+</td>
+<td style="text-align:right;">
+0.1476828
+</td>
+<td style="text-align:right;">
+0.0218102
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0797101
+</td>
+<td style="text-align:right;">
+0.1692308
+</td>
+<td style="text-align:right;">
+0.2814815
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0019656
+</td>
+<td style="text-align:right;">
+0.1896199
+</td>
+<td style="text-align:right;">
+0.1973266
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+1351
+</td>
+<td style="text-align:right;">
+0.1716154
+</td>
+<td style="text-align:right;">
+0.1375621
+</td>
+<td style="text-align:right;">
+0.0189233
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0651923
+</td>
+<td style="text-align:right;">
+0.1435346
+</td>
+<td style="text-align:right;">
+0.2500000
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0029209
+</td>
+<td style="text-align:right;">
+0.1658874
+</td>
+<td style="text-align:right;">
+0.1773434
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+417
+</td>
+<td style="text-align:right;">
+0.1305148
+</td>
+<td style="text-align:right;">
+0.1413299
+</td>
+<td style="text-align:right;">
+0.0199741
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0344828
+</td>
+<td style="text-align:right;">
+0.0937500
+</td>
+<td style="text-align:right;">
+0.1808511
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0050572
+</td>
+<td style="text-align:right;">
+0.1205875
+</td>
+<td style="text-align:right;">
+0.1404421
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+0.0277778
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+3672
+</td>
+<td style="text-align:right;">
+0.1721709
+</td>
+<td style="text-align:right;">
+0.1276044
+</td>
+<td style="text-align:right;">
+0.0162829
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0689655
+</td>
+<td style="text-align:right;">
+0.1498665
+</td>
+<td style="text-align:right;">
+0.2545973
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0016802
+</td>
+<td style="text-align:right;">
+0.1688771
+</td>
+<td style="text-align:right;">
+0.1754647
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+1551
+</td>
+<td style="text-align:right;">
+0.1487254
+</td>
+<td style="text-align:right;">
+0.1204030
+</td>
+<td style="text-align:right;">
+0.0144969
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0498369
+</td>
+<td style="text-align:right;">
+0.1250000
+</td>
+<td style="text-align:right;">
+0.2276283
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.0024965
+</td>
+<td style="text-align:right;">
+0.1438298
+</td>
+<td style="text-align:right;">
+0.1536210
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+429
+</td>
+<td style="text-align:right;">
+0.1219592
+</td>
+<td style="text-align:right;">
+0.1186254
+</td>
+<td style="text-align:right;">
+0.0140720
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0330845
+</td>
+<td style="text-align:right;">
+0.0889650
+</td>
+<td style="text-align:right;">
+0.1818182
+</td>
+<td style="text-align:right;">
+0.6875000
+</td>
+<td style="text-align:right;">
+0.0046964
+</td>
+<td style="text-align:right;">
+0.1127368
+</td>
+<td style="text-align:right;">
+0.1311815
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.0400318
+</td>
+<td style="text-align:right;">
+0.0048740
+</td>
+<td style="text-align:right;">
+0.0000238
+</td>
+<td style="text-align:right;">
+0.0365854
+</td>
+<td style="text-align:right;">
+0.0383086
+</td>
+<td style="text-align:right;">
+0.0400318
+</td>
+<td style="text-align:right;">
+0.0417550
+</td>
+<td style="text-align:right;">
+0.0434783
+</td>
+<td style="text-align:right;">
+0.0034464
+</td>
+<td style="text-align:right;">
+-0.0037595
+</td>
+<td style="text-align:right;">
+0.0838231
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-11">Table 2: </span>registered_perc, grouped by year and weathersit
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+yr
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+weathersit
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5645
+</td>
+<td style="text-align:right;">
+2951
+</td>
+<td style="text-align:right;">
+0.8065268
+</td>
+<td style="text-align:right;">
+0.1476828
+</td>
+<td style="text-align:right;">
+0.0218102
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7185185
+</td>
+<td style="text-align:right;">
+0.8307692
+</td>
+<td style="text-align:right;">
+0.9202899
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0019656
+</td>
+<td style="text-align:right;">
+0.8026734
+</td>
+<td style="text-align:right;">
+0.8103801
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2218
+</td>
+<td style="text-align:right;">
+1351
+</td>
+<td style="text-align:right;">
+0.8283846
+</td>
+<td style="text-align:right;">
+0.1375621
+</td>
+<td style="text-align:right;">
+0.0189233
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7500000
+</td>
+<td style="text-align:right;">
+0.8564654
+</td>
+<td style="text-align:right;">
+0.9348077
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0029209
+</td>
+<td style="text-align:right;">
+0.8226566
+</td>
+<td style="text-align:right;">
+0.8341126
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+781
+</td>
+<td style="text-align:right;">
+417
+</td>
+<td style="text-align:right;">
+0.8694852
+</td>
+<td style="text-align:right;">
+0.1413299
+</td>
+<td style="text-align:right;">
+0.0199741
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.8191489
+</td>
+<td style="text-align:right;">
+0.9062500
+</td>
+<td style="text-align:right;">
+0.9655172
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0050572
+</td>
+<td style="text-align:right;">
+0.8595579
+</td>
+<td style="text-align:right;">
+0.8794125
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2011
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+0.9722222
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Clear / Few clouds / Partly cloudy
+</td>
+<td style="text-align:right;">
+5768
+</td>
+<td style="text-align:right;">
+3672
+</td>
+<td style="text-align:right;">
+0.8278291
+</td>
+<td style="text-align:right;">
+0.1276044
+</td>
+<td style="text-align:right;">
+0.0162829
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7454027
+</td>
+<td style="text-align:right;">
+0.8501335
+</td>
+<td style="text-align:right;">
+0.9310345
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0016802
+</td>
+<td style="text-align:right;">
+0.8245353
+</td>
+<td style="text-align:right;">
+0.8311229
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Mist + Cloudy / Mist + Broken clouds / Mist + Few clouds / Mist
+</td>
+<td style="text-align:right;">
+2326
+</td>
+<td style="text-align:right;">
+1551
+</td>
+<td style="text-align:right;">
+0.8512746
+</td>
+<td style="text-align:right;">
+0.1204030
+</td>
+<td style="text-align:right;">
+0.0144969
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.7723717
+</td>
+<td style="text-align:right;">
+0.8750000
+</td>
+<td style="text-align:right;">
+0.9501631
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0024965
+</td>
+<td style="text-align:right;">
+0.8463790
+</td>
+<td style="text-align:right;">
+0.8561702
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Light Snow / Light Rain + Thunderstorm + Scattered clouds / Light Rain + Scattered clouds
+</td>
+<td style="text-align:right;">
+638
+</td>
+<td style="text-align:right;">
+429
+</td>
+<td style="text-align:right;">
+0.8780408
+</td>
+<td style="text-align:right;">
+0.1186254
+</td>
+<td style="text-align:right;">
+0.0140720
+</td>
+<td style="text-align:right;">
+0.3125000
+</td>
+<td style="text-align:right;">
+0.8181818
+</td>
+<td style="text-align:right;">
+0.9110350
+</td>
+<td style="text-align:right;">
+0.9669155
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0046964
+</td>
+<td style="text-align:right;">
+0.8688185
+</td>
+<td style="text-align:right;">
+0.8872632
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2012
+</td>
+<td style="text-align:left;">
+Heavy Rain + Ice Pallets + Thunderstorm + Mist / Snow + Fog
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.9599682
+</td>
+<td style="text-align:right;">
+0.0048740
+</td>
+<td style="text-align:right;">
+0.0000238
+</td>
+<td style="text-align:right;">
+0.9565217
+</td>
+<td style="text-align:right;">
+0.9582450
+</td>
+<td style="text-align:right;">
+0.9599682
+</td>
+<td style="text-align:right;">
+0.9616914
+</td>
+<td style="text-align:right;">
+0.9634146
+</td>
+<td style="text-align:right;">
+0.0034464
+</td>
+<td style="text-align:right;">
+0.9161769
+</td>
+<td style="text-align:right;">
+1.0037595
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="r"><code>for (i in colnames(df_num)) {
+    per &lt;- df %&gt;%
+        dplyr::group_by(season, workingday) %&gt;%
+        summarise_at(vars(i), funs(n(), n_distinct, mean, sd, 
+            var, min, Q1 = quantile(., probs = 0.25), median, 
+            Q3 = quantile(., probs = 0.75), max, se = sd/sqrt(n), 
+            lower.ci = mean - qt(1 - (0.05/2), n - 1) * se, upper.ci = mean + 
+                qt(1 - (0.05/2), n - 1) * se)) %&gt;%
+        kable(&quot;html&quot;, caption = paste(i, &quot;grouped by season and workingday&quot;, 
+            sep = &quot;, &quot;)) %&gt;%
+        kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, 
+            &quot;condensed&quot;), full_width = F, position = &quot;left&quot;, 
+            font_size = 10) %&gt;%
+        scroll_box(width = &quot;900px&quot;, height = &quot;300px&quot;)
+    print(per)
+}</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>temp, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+0.4019883
+</td>
+<td style="text-align:right;">
+0.1168327
+</td>
+<td style="text-align:right;">
+0.0136499
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.32
+</td>
+<td style="text-align:right;">
+0.40
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.74
+</td>
+<td style="text-align:right;">
+0.0031588
+</td>
+<td style="text-align:right;">
+0.3957917
+</td>
+<td style="text-align:right;">
+0.4081849
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+0.4332402
+</td>
+<td style="text-align:right;">
+0.1233816
+</td>
+<td style="text-align:right;">
+0.0152230
+</td>
+<td style="text-align:right;">
+0.14
+</td>
+<td style="text-align:right;">
+0.34
+</td>
+<td style="text-align:right;">
+0.42
+</td>
+<td style="text-align:right;">
+0.52
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+0.0023055
+</td>
+<td style="text-align:right;">
+0.4287196
+</td>
+<td style="text-align:right;">
+0.4377608
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+0.5465078
+</td>
+<td style="text-align:right;">
+0.1401668
+</td>
+<td style="text-align:right;">
+0.0196467
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+0.54
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.88
+</td>
+<td style="text-align:right;">
+0.0038248
+</td>
+<td style="text-align:right;">
+0.5390046
+</td>
+<td style="text-align:right;">
+0.5540110
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+0.5438552
+</td>
+<td style="text-align:right;">
+0.1388374
+</td>
+<td style="text-align:right;">
+0.0192758
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.56
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+<td style="text-align:right;">
+0.0025074
+</td>
+<td style="text-align:right;">
+0.5389389
+</td>
+<td style="text-align:right;">
+0.5487715
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+0.7068339
+</td>
+<td style="text-align:right;">
+0.0950764
+</td>
+<td style="text-align:right;">
+0.0090395
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.0025829
+</td>
+<td style="text-align:right;">
+0.7017671
+</td>
+<td style="text-align:right;">
+0.7119008
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+0.7062273
+</td>
+<td style="text-align:right;">
+0.0934065
+</td>
+<td style="text-align:right;">
+0.0087248
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:right;">
+0.0016666
+</td>
+<td style="text-align:right;">
+0.7029595
+</td>
+<td style="text-align:right;">
+0.7094951
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+0.2848619
+</td>
+<td style="text-align:right;">
+0.1070590
+</td>
+<td style="text-align:right;">
+0.0114616
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.22
+</td>
+<td style="text-align:right;">
+0.28
+</td>
+<td style="text-align:right;">
+0.36
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.0028134
+</td>
+<td style="text-align:right;">
+0.2793430
+</td>
+<td style="text-align:right;">
+0.2903808
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+0.3065497
+</td>
+<td style="text-align:right;">
+0.1237135
+</td>
+<td style="text-align:right;">
+0.0153050
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+0.22
+</td>
+<td style="text-align:right;">
+0.30
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+0.72
+</td>
+<td style="text-align:right;">
+0.0023405
+</td>
+<td style="text-align:right;">
+0.3019605
+</td>
+<td style="text-align:right;">
+0.3111390
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>atemp, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+34
+</td>
+<td style="text-align:right;">
+0.3978755
+</td>
+<td style="text-align:right;">
+0.1078738
+</td>
+<td style="text-align:right;">
+0.0116368
+</td>
+<td style="text-align:right;">
+0.1515
+</td>
+<td style="text-align:right;">
+0.3182
+</td>
+<td style="text-align:right;">
+0.4091
+</td>
+<td style="text-align:right;">
+0.4848
+</td>
+<td style="text-align:right;">
+0.6515
+</td>
+<td style="text-align:right;">
+0.0029166
+</td>
+<td style="text-align:right;">
+0.3921541
+</td>
+<td style="text-align:right;">
+0.4035970
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+0.4242697
+</td>
+<td style="text-align:right;">
+0.1090184
+</td>
+<td style="text-align:right;">
+0.0118850
+</td>
+<td style="text-align:right;">
+0.1515
+</td>
+<td style="text-align:right;">
+0.3333
+</td>
+<td style="text-align:right;">
+0.4242
+</td>
+<td style="text-align:right;">
+0.5000
+</td>
+<td style="text-align:right;">
+0.6818
+</td>
+<td style="text-align:right;">
+0.0020371
+</td>
+<td style="text-align:right;">
+0.4202754
+</td>
+<td style="text-align:right;">
+0.4282640
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+0.5224959
+</td>
+<td style="text-align:right;">
+0.1217490
+</td>
+<td style="text-align:right;">
+0.0148228
+</td>
+<td style="text-align:right;">
+0.1667
+</td>
+<td style="text-align:right;">
+0.4394
+</td>
+<td style="text-align:right;">
+0.5152
+</td>
+<td style="text-align:right;">
+0.6212
+</td>
+<td style="text-align:right;">
+0.8030
+</td>
+<td style="text-align:right;">
+0.0033222
+</td>
+<td style="text-align:right;">
+0.5159786
+</td>
+<td style="text-align:right;">
+0.5290132
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+47
+</td>
+<td style="text-align:right;">
+0.5196932
+</td>
+<td style="text-align:right;">
+0.1240919
+</td>
+<td style="text-align:right;">
+0.0153988
+</td>
+<td style="text-align:right;">
+0.1667
+</td>
+<td style="text-align:right;">
+0.4545
+</td>
+<td style="text-align:right;">
+0.5303
+</td>
+<td style="text-align:right;">
+0.6212
+</td>
+<td style="text-align:right;">
+0.8788
+</td>
+<td style="text-align:right;">
+0.0022411
+</td>
+<td style="text-align:right;">
+0.5152991
+</td>
+<td style="text-align:right;">
+0.5240874
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+0.6589162
+</td>
+<td style="text-align:right;">
+0.0847715
+</td>
+<td style="text-align:right;">
+0.0071862
+</td>
+<td style="text-align:right;">
+0.4394
+</td>
+<td style="text-align:right;">
+0.6061
+</td>
+<td style="text-align:right;">
+0.6667
+</td>
+<td style="text-align:right;">
+0.7121
+</td>
+<td style="text-align:right;">
+0.9091
+</td>
+<td style="text-align:right;">
+0.0023029
+</td>
+<td style="text-align:right;">
+0.6543985
+</td>
+<td style="text-align:right;">
+0.6634339
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+0.6547470
+</td>
+<td style="text-align:right;">
+0.0914561
+</td>
+<td style="text-align:right;">
+0.0083642
+</td>
+<td style="text-align:right;">
+0.2424
+</td>
+<td style="text-align:right;">
+0.6061
+</td>
+<td style="text-align:right;">
+0.6667
+</td>
+<td style="text-align:right;">
+0.7121
+</td>
+<td style="text-align:right;">
+1.0000
+</td>
+<td style="text-align:right;">
+0.0016318
+</td>
+<td style="text-align:right;">
+0.6515474
+</td>
+<td style="text-align:right;">
+0.6579466
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+0.2821831
+</td>
+<td style="text-align:right;">
+0.1051565
+</td>
+<td style="text-align:right;">
+0.0110579
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+0.2121
+</td>
+<td style="text-align:right;">
+0.2727
+</td>
+<td style="text-align:right;">
+0.3333
+</td>
+<td style="text-align:right;">
+0.6212
+</td>
+<td style="text-align:right;">
+0.0027635
+</td>
+<td style="text-align:right;">
+0.2767623
+</td>
+<td style="text-align:right;">
+0.2876039
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+42
+</td>
+<td style="text-align:right;">
+0.3063740
+</td>
+<td style="text-align:right;">
+0.1180909
+</td>
+<td style="text-align:right;">
+0.0139454
+</td>
+<td style="text-align:right;">
+0.0152
+</td>
+<td style="text-align:right;">
+0.2273
+</td>
+<td style="text-align:right;">
+0.2879
+</td>
+<td style="text-align:right;">
+0.3939
+</td>
+<td style="text-align:right;">
+0.6515
+</td>
+<td style="text-align:right;">
+0.0022341
+</td>
+<td style="text-align:right;">
+0.3019934
+</td>
+<td style="text-align:right;">
+0.3107547
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>hum, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+65
+</td>
+<td style="text-align:right;">
+0.6426023
+</td>
+<td style="text-align:right;">
+0.1759795
+</td>
+<td style="text-align:right;">
+0.0309688
+</td>
+<td style="text-align:right;">
+0.26
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.64
+</td>
+<td style="text-align:right;">
+0.8100
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0047579
+</td>
+<td style="text-align:right;">
+0.6332687
+</td>
+<td style="text-align:right;">
+0.6519360
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+69
+</td>
+<td style="text-align:right;">
+0.6788373
+</td>
+<td style="text-align:right;">
+0.1780186
+</td>
+<td style="text-align:right;">
+0.0316906
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.53
+</td>
+<td style="text-align:right;">
+0.68
+</td>
+<td style="text-align:right;">
+0.8300
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0033264
+</td>
+<td style="text-align:right;">
+0.6723148
+</td>
+<td style="text-align:right;">
+0.6853597
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+0.6398511
+</td>
+<td style="text-align:right;">
+0.2013086
+</td>
+<td style="text-align:right;">
+0.0405252
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.49
+</td>
+<td style="text-align:right;">
+0.65
+</td>
+<td style="text-align:right;">
+0.8200
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0054932
+</td>
+<td style="text-align:right;">
+0.6290749
+</td>
+<td style="text-align:right;">
+0.6506272
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:right;">
+0.6214025
+</td>
+<td style="text-align:right;">
+0.2068977
+</td>
+<td style="text-align:right;">
+0.0428066
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.63
+</td>
+<td style="text-align:right;">
+0.7900
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0037365
+</td>
+<td style="text-align:right;">
+0.6140761
+</td>
+<td style="text-align:right;">
+0.6287289
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+70
+</td>
+<td style="text-align:right;">
+0.6470775
+</td>
+<td style="text-align:right;">
+0.1743763
+</td>
+<td style="text-align:right;">
+0.0304071
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.51
+</td>
+<td style="text-align:right;">
+0.67
+</td>
+<td style="text-align:right;">
+0.7900
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0047372
+</td>
+<td style="text-align:right;">
+0.6377845
+</td>
+<td style="text-align:right;">
+0.6563705
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+71
+</td>
+<td style="text-align:right;">
+0.6271665
+</td>
+<td style="text-align:right;">
+0.1790442
+</td>
+<td style="text-align:right;">
+0.0320568
+</td>
+<td style="text-align:right;">
+0.17
+</td>
+<td style="text-align:right;">
+0.49
+</td>
+<td style="text-align:right;">
+0.65
+</td>
+<td style="text-align:right;">
+0.7800
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0031947
+</td>
+<td style="text-align:right;">
+0.6209027
+</td>
+<td style="text-align:right;">
+0.6334304
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+0.5655180
+</td>
+<td style="text-align:right;">
+0.1988811
+</td>
+<td style="text-align:right;">
+0.0395537
+</td>
+<td style="text-align:right;">
+0.12
+</td>
+<td style="text-align:right;">
+0.41
+</td>
+<td style="text-align:right;">
+0.53
+</td>
+<td style="text-align:right;">
+0.7025
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0052265
+</td>
+<td style="text-align:right;">
+0.5552657
+</td>
+<td style="text-align:right;">
+0.5757702
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+0.5895526
+</td>
+<td style="text-align:right;">
+0.1992138
+</td>
+<td style="text-align:right;">
+0.0396861
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+0.57
+</td>
+<td style="text-align:right;">
+0.7400
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0037688
+</td>
+<td style="text-align:right;">
+0.5821626
+</td>
+<td style="text-align:right;">
+0.5969426
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>windspeed, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+0.1730648
+</td>
+<td style="text-align:right;">
+0.1222007
+</td>
+<td style="text-align:right;">
+0.0149330
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0896
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.6119
+</td>
+<td style="text-align:right;">
+0.0033039
+</td>
+<td style="text-align:right;">
+0.1665834
+</td>
+<td style="text-align:right;">
+0.1795461
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+0.1697457
+</td>
+<td style="text-align:right;">
+0.1169459
+</td>
+<td style="text-align:right;">
+0.0136763
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0896
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.6418
+</td>
+<td style="text-align:right;">
+0.0021852
+</td>
+<td style="text-align:right;">
+0.1654609
+</td>
+<td style="text-align:right;">
+0.1740305
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+0.1845868
+</td>
+<td style="text-align:right;">
+0.1075599
+</td>
+<td style="text-align:right;">
+0.0115691
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.5821
+</td>
+<td style="text-align:right;">
+0.0029350
+</td>
+<td style="text-align:right;">
+0.1788291
+</td>
+<td style="text-align:right;">
+0.1903446
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+0.2116555
+</td>
+<td style="text-align:right;">
+0.1205088
+</td>
+<td style="text-align:right;">
+0.0145224
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1343
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.2836
+</td>
+<td style="text-align:right;">
+0.7164
+</td>
+<td style="text-align:right;">
+0.0021764
+</td>
+<td style="text-align:right;">
+0.2073882
+</td>
+<td style="text-align:right;">
+0.2159228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+0.1809810
+</td>
+<td style="text-align:right;">
+0.1109225
+</td>
+<td style="text-align:right;">
+0.0123038
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2537
+</td>
+<td style="text-align:right;">
+0.8507
+</td>
+<td style="text-align:right;">
+0.0030134
+</td>
+<td style="text-align:right;">
+0.1750696
+</td>
+<td style="text-align:right;">
+0.1868923
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+0.1675428
+</td>
+<td style="text-align:right;">
+0.1084367
+</td>
+<td style="text-align:right;">
+0.0117585
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1642
+</td>
+<td style="text-align:right;">
+0.2239
+</td>
+<td style="text-align:right;">
+0.6418
+</td>
+<td style="text-align:right;">
+0.0019348
+</td>
+<td style="text-align:right;">
+0.1637491
+</td>
+<td style="text-align:right;">
+0.1713364
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+0.2279158
+</td>
+<td style="text-align:right;">
+0.1394916
+</td>
+<td style="text-align:right;">
+0.0194579
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1343
+</td>
+<td style="text-align:right;">
+0.2239
+</td>
+<td style="text-align:right;">
+0.2985
+</td>
+<td style="text-align:right;">
+0.7463
+</td>
+<td style="text-align:right;">
+0.0036658
+</td>
+<td style="text-align:right;">
+0.2207250
+</td>
+<td style="text-align:right;">
+0.2351066
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+0.2084692
+</td>
+<td style="text-align:right;">
+0.1351070
+</td>
+<td style="text-align:right;">
+0.0182539
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1045
+</td>
+<td style="text-align:right;">
+0.1940
+</td>
+<td style="text-align:right;">
+0.2836
+</td>
+<td style="text-align:right;">
+0.8060
+</td>
+<td style="text-align:right;">
+0.0025560
+</td>
+<td style="text-align:right;">
+0.2034573
+</td>
+<td style="text-align:right;">
+0.2134811
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>casual, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+236
+</td>
+<td style="text-align:right;">
+52.11550
+</td>
+<td style="text-align:right;">
+67.75815
+</td>
+<td style="text-align:right;">
+4591.1673
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+73.0
+</td>
+<td style="text-align:right;">
+362
+</td>
+<td style="text-align:right;">
+1.8319707
+</td>
+<td style="text-align:right;">
+48.521719
+</td>
+<td style="text-align:right;">
+55.70928
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+126
+</td>
+<td style="text-align:right;">
+20.42179
+</td>
+<td style="text-align:right;">
+24.79382
+</td>
+<td style="text-align:right;">
+614.7337
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+240
+</td>
+<td style="text-align:right;">
+0.4632943
+</td>
+<td style="text-align:right;">
+19.513364
+</td>
+<td style="text-align:right;">
+21.33021
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+285
+</td>
+<td style="text-align:right;">
+78.69918
+</td>
+<td style="text-align:right;">
+83.58470
+</td>
+<td style="text-align:right;">
+6986.4027
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+44
+</td>
+<td style="text-align:right;">
+129.0
+</td>
+<td style="text-align:right;">
+361
+</td>
+<td style="text-align:right;">
+2.2808084
+</td>
+<td style="text-align:right;">
+74.224843
+</td>
+<td style="text-align:right;">
+83.17352
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+153
+</td>
+<td style="text-align:right;">
+31.90770
+</td>
+<td style="text-align:right;">
+31.96167
+</td>
+<td style="text-align:right;">
+1021.5481
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+49.0
+</td>
+<td style="text-align:right;">
+264
+</td>
+<td style="text-align:right;">
+0.5772226
+</td>
+<td style="text-align:right;">
+30.775915
+</td>
+<td style="text-align:right;">
+33.03948
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+254
+</td>
+<td style="text-align:right;">
+79.22140
+</td>
+<td style="text-align:right;">
+73.03124
+</td>
+<td style="text-align:right;">
+5333.5625
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+129.5
+</td>
+<td style="text-align:right;">
+350
+</td>
+<td style="text-align:right;">
+1.9839880
+</td>
+<td style="text-align:right;">
+75.329378
+</td>
+<td style="text-align:right;">
+83.11343
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+134
+</td>
+<td style="text-align:right;">
+37.80516
+</td>
+<td style="text-align:right;">
+31.89042
+</td>
+<td style="text-align:right;">
+1016.9990
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+59.0
+</td>
+<td style="text-align:right;">
+178
+</td>
+<td style="text-align:right;">
+0.5690184
+</td>
+<td style="text-align:right;">
+36.689472
+</td>
+<td style="text-align:right;">
+38.92084
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+149
+</td>
+<td style="text-align:right;">
+22.37569
+</td>
+<td style="text-align:right;">
+40.80706
+</td>
+<td style="text-align:right;">
+1665.2160
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+24.0
+</td>
+<td style="text-align:right;">
+367
+</td>
+<td style="text-align:right;">
+1.0723857
+</td>
+<td style="text-align:right;">
+20.272094
+</td>
+<td style="text-align:right;">
+24.47929
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+97
+</td>
+<td style="text-align:right;">
+10.10093
+</td>
+<td style="text-align:right;">
+15.20086
+</td>
+<td style="text-align:right;">
+231.0661
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+13.0
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+0.2875775
+</td>
+<td style="text-align:right;">
+9.537045
+</td>
+<td style="text-align:right;">
+10.66482
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>registered, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+378
+</td>
+<td style="text-align:right;">
+139.80994
+</td>
+<td style="text-align:right;">
+116.28310
+</td>
+<td style="text-align:right;">
+13521.760
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+41.0
+</td>
+<td style="text-align:right;">
+110.5
+</td>
+<td style="text-align:right;">
+219.00
+</td>
+<td style="text-align:right;">
+530
+</td>
+<td style="text-align:right;">
+3.143935
+</td>
+<td style="text-align:right;">
+133.64248
+</td>
+<td style="text-align:right;">
+145.97740
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+592
+</td>
+<td style="text-align:right;">
+181.76362
+</td>
+<td style="text-align:right;">
+172.22487
+</td>
+<td style="text-align:right;">
+29661.404
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+41.0
+</td>
+<td style="text-align:right;">
+143.0
+</td>
+<td style="text-align:right;">
+252.00
+</td>
+<td style="text-align:right;">
+876
+</td>
+<td style="text-align:right;">
+3.218173
+</td>
+<td style="text-align:right;">
+175.45345
+</td>
+<td style="text-align:right;">
+188.07379
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+362
+</td>
+<td style="text-align:right;">
+135.72822
+</td>
+<td style="text-align:right;">
+110.15770
+</td>
+<td style="text-align:right;">
+12134.718
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+38.0
+</td>
+<td style="text-align:right;">
+109.0
+</td>
+<td style="text-align:right;">
+217.50
+</td>
+<td style="text-align:right;">
+601
+</td>
+<td style="text-align:right;">
+3.005916
+</td>
+<td style="text-align:right;">
+129.83141
+</td>
+<td style="text-align:right;">
+141.62503
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+606
+</td>
+<td style="text-align:right;">
+173.77169
+</td>
+<td style="text-align:right;">
+166.74163
+</td>
+<td style="text-align:right;">
+27802.771
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+37.0
+</td>
+<td style="text-align:right;">
+134.0
+</td>
+<td style="text-align:right;">
+244.75
+</td>
+<td style="text-align:right;">
+782
+</td>
+<td style="text-align:right;">
+3.011327
+</td>
+<td style="text-align:right;">
+167.86726
+</td>
+<td style="text-align:right;">
+179.67611
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+379
+</td>
+<td style="text-align:right;">
+151.07823
+</td>
+<td style="text-align:right;">
+109.69306
+</td>
+<td style="text-align:right;">
+12032.567
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+56.5
+</td>
+<td style="text-align:right;">
+139.0
+</td>
+<td style="text-align:right;">
+228.00
+</td>
+<td style="text-align:right;">
+510
+</td>
+<td style="text-align:right;">
+2.979954
+</td>
+<td style="text-align:right;">
+145.23240
+</td>
+<td style="text-align:right;">
+156.92406
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+642
+</td>
+<td style="text-align:right;">
+200.67717
+</td>
+<td style="text-align:right;">
+183.63468
+</td>
+<td style="text-align:right;">
+33721.697
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+53.0
+</td>
+<td style="text-align:right;">
+158.0
+</td>
+<td style="text-align:right;">
+281.00
+</td>
+<td style="text-align:right;">
+886
+</td>
+<td style="text-align:right;">
+3.276580
+</td>
+<td style="text-align:right;">
+194.25272
+</td>
+<td style="text-align:right;">
+207.10163
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+265
+</td>
+<td style="text-align:right;">
+72.70925
+</td>
+<td style="text-align:right;">
+72.71386
+</td>
+<td style="text-align:right;">
+5287.305
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+18.0
+</td>
+<td style="text-align:right;">
+51.0
+</td>
+<td style="text-align:right;">
+101.00
+</td>
+<td style="text-align:right;">
+400
+</td>
+<td style="text-align:right;">
+1.910878
+</td>
+<td style="text-align:right;">
+68.96087
+</td>
+<td style="text-align:right;">
+76.45764
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+423
+</td>
+<td style="text-align:right;">
+109.32105
+</td>
+<td style="text-align:right;">
+115.48350
+</td>
+<td style="text-align:right;">
+13336.438
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+24.0
+</td>
+<td style="text-align:right;">
+77.0
+</td>
+<td style="text-align:right;">
+155.00
+</td>
+<td style="text-align:right;">
+681
+</td>
+<td style="text-align:right;">
+2.184775
+</td>
+<td style="text-align:right;">
+105.03711
+</td>
+<td style="text-align:right;">
+113.60498
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>cnt, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+480
+</td>
+<td style="text-align:right;">
+191.92544
+</td>
+<td style="text-align:right;">
+176.1346
+</td>
+<td style="text-align:right;">
+31023.38
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+48.75
+</td>
+<td style="text-align:right;">
+139
+</td>
+<td style="text-align:right;">
+301.25
+</td>
+<td style="text-align:right;">
+776
+</td>
+<td style="text-align:right;">
+4.762133
+</td>
+<td style="text-align:right;">
+182.58356
+</td>
+<td style="text-align:right;">
+201.2673
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+643
+</td>
+<td style="text-align:right;">
+202.18541
+</td>
+<td style="text-align:right;">
+186.0822
+</td>
+<td style="text-align:right;">
+34626.60
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+45.00
+</td>
+<td style="text-align:right;">
+165
+</td>
+<td style="text-align:right;">
+292.00
+</td>
+<td style="text-align:right;">
+967
+</td>
+<td style="text-align:right;">
+3.477110
+</td>
+<td style="text-align:right;">
+195.36751
+</td>
+<td style="text-align:right;">
+209.0033
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+528
+</td>
+<td style="text-align:right;">
+214.42740
+</td>
+<td style="text-align:right;">
+187.8683
+</td>
+<td style="text-align:right;">
+35294.50
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+50.00
+</td>
+<td style="text-align:right;">
+154
+</td>
+<td style="text-align:right;">
+358.00
+</td>
+<td style="text-align:right;">
+730
+</td>
+<td style="text-align:right;">
+5.126436
+</td>
+<td style="text-align:right;">
+204.37070
+</td>
+<td style="text-align:right;">
+224.4841
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+663
+</td>
+<td style="text-align:right;">
+205.67939
+</td>
+<td style="text-align:right;">
+188.5473
+</td>
+<td style="text-align:right;">
+35550.08
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+44.00
+</td>
+<td style="text-align:right;">
+168
+</td>
+<td style="text-align:right;">
+295.75
+</td>
+<td style="text-align:right;">
+957
+</td>
+<td style="text-align:right;">
+3.405134
+</td>
+<td style="text-align:right;">
+199.00281
+</td>
+<td style="text-align:right;">
+212.3560
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+523
+</td>
+<td style="text-align:right;">
+230.29963
+</td>
+<td style="text-align:right;">
+177.4010
+</td>
+<td style="text-align:right;">
+31471.10
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+73.00
+</td>
+<td style="text-align:right;">
+194
+</td>
+<td style="text-align:right;">
+367.00
+</td>
+<td style="text-align:right;">
+783
+</td>
+<td style="text-align:right;">
+4.819326
+</td>
+<td style="text-align:right;">
+220.84547
+</td>
+<td style="text-align:right;">
+239.7538
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+729
+</td>
+<td style="text-align:right;">
+238.48233
+</td>
+<td style="text-align:right;">
+205.8336
+</td>
+<td style="text-align:right;">
+42367.45
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+64.00
+</td>
+<td style="text-align:right;">
+200
+</td>
+<td style="text-align:right;">
+333.00
+</td>
+<td style="text-align:right;">
+977
+</td>
+<td style="text-align:right;">
+3.672673
+</td>
+<td style="text-align:right;">
+231.28125
+</td>
+<td style="text-align:right;">
+245.6834
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+332
+</td>
+<td style="text-align:right;">
+95.08494
+</td>
+<td style="text-align:right;">
+107.3951
+</td>
+<td style="text-align:right;">
+11533.70
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+20.00
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+126.00
+</td>
+<td style="text-align:right;">
+690
+</td>
+<td style="text-align:right;">
+2.822279
+</td>
+<td style="text-align:right;">
+89.54875
+</td>
+<td style="text-align:right;">
+100.6211
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+448
+</td>
+<td style="text-align:right;">
+119.42198
+</td>
+<td style="text-align:right;">
+124.1209
+</td>
+<td style="text-align:right;">
+15406.01
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+26.00
+</td>
+<td style="text-align:right;">
+86
+</td>
+<td style="text-align:right;">
+172.75
+</td>
+<td style="text-align:right;">
+801
+</td>
+<td style="text-align:right;">
+2.348182
+</td>
+<td style="text-align:right;">
+114.81763
+</td>
+<td style="text-align:right;">
+124.0263
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>casual_perc, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+975
+</td>
+<td style="text-align:right;">
+0.2135291
+</td>
+<td style="text-align:right;">
+0.1254726
+</td>
+<td style="text-align:right;">
+0.0157434
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.1212121
+</td>
+<td style="text-align:right;">
+0.1954692
+</td>
+<td style="text-align:right;">
+0.2989347
+</td>
+<td style="text-align:right;">
+0.8333333
+</td>
+<td style="text-align:right;">
+0.0033924
+</td>
+<td style="text-align:right;">
+0.2068743
+</td>
+<td style="text-align:right;">
+0.2201840
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+1728
+</td>
+<td style="text-align:right;">
+0.1102418
+</td>
+<td style="text-align:right;">
+0.1003026
+</td>
+<td style="text-align:right;">
+0.0100606
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0383881
+</td>
+<td style="text-align:right;">
+0.0867922
+</td>
+<td style="text-align:right;">
+0.1565495
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0018742
+</td>
+<td style="text-align:right;">
+0.1065668
+</td>
+<td style="text-align:right;">
+0.1139168
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+1005
+</td>
+<td style="text-align:right;">
+0.3030039
+</td>
+<td style="text-align:right;">
+0.1293625
+</td>
+<td style="text-align:right;">
+0.0167346
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.2134692
+</td>
+<td style="text-align:right;">
+0.3120000
+</td>
+<td style="text-align:right;">
+0.3955870
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0035300
+</td>
+<td style="text-align:right;">
+0.2960790
+</td>
+<td style="text-align:right;">
+0.3099287
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+1966
+</td>
+<td style="text-align:right;">
+0.1695139
+</td>
+<td style="text-align:right;">
+0.1287925
+</td>
+<td style="text-align:right;">
+0.0165875
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0793836
+</td>
+<td style="text-align:right;">
+0.1510344
+</td>
+<td style="text-align:right;">
+0.2362703
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0023260
+</td>
+<td style="text-align:right;">
+0.1649532
+</td>
+<td style="text-align:right;">
+0.1740745
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+1079
+</td>
+<td style="text-align:right;">
+0.3040890
+</td>
+<td style="text-align:right;">
+0.1113607
+</td>
+<td style="text-align:right;">
+0.0124012
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.2314391
+</td>
+<td style="text-align:right;">
+0.3062827
+</td>
+<td style="text-align:right;">
+0.3773952
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0030253
+</td>
+<td style="text-align:right;">
+0.2981543
+</td>
+<td style="text-align:right;">
+0.3100237
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+2167
+</td>
+<td style="text-align:right;">
+0.1764696
+</td>
+<td style="text-align:right;">
+0.1128869
+</td>
+<td style="text-align:right;">
+0.0127434
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0975610
+</td>
+<td style="text-align:right;">
+0.1649485
+</td>
+<td style="text-align:right;">
+0.2442159
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0020142
+</td>
+<td style="text-align:right;">
+0.1725202
+</td>
+<td style="text-align:right;">
+0.1804189
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+767
+</td>
+<td style="text-align:right;">
+0.1690121
+</td>
+<td style="text-align:right;">
+0.1423407
+</td>
+<td style="text-align:right;">
+0.0202609
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0625000
+</td>
+<td style="text-align:right;">
+0.1415468
+</td>
+<td style="text-align:right;">
+0.2467738
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0037406
+</td>
+<td style="text-align:right;">
+0.1616745
+</td>
+<td style="text-align:right;">
+0.1763498
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+1277
+</td>
+<td style="text-align:right;">
+0.0880821
+</td>
+<td style="text-align:right;">
+0.1112586
+</td>
+<td style="text-align:right;">
+0.0123785
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0165120
+</td>
+<td style="text-align:right;">
+0.0536150
+</td>
+<td style="text-align:right;">
+0.1206897
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.0021048
+</td>
+<td style="text-align:right;">
+0.0839549
+</td>
+<td style="text-align:right;">
+0.0922093
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:900px; ">
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-12">Table 3: </span>registered_perc, grouped by season and workingday
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+season
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+workingday
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_distinct
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+var
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+median
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Q3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+se
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+lower.ci
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+upper.ci
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1368
+</td>
+<td style="text-align:right;">
+975
+</td>
+<td style="text-align:right;">
+0.7864709
+</td>
+<td style="text-align:right;">
+0.1254726
+</td>
+<td style="text-align:right;">
+0.0157434
+</td>
+<td style="text-align:right;">
+0.1666667
+</td>
+<td style="text-align:right;">
+0.7010653
+</td>
+<td style="text-align:right;">
+0.8045308
+</td>
+<td style="text-align:right;">
+0.8787879
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0033924
+</td>
+<td style="text-align:right;">
+0.7798160
+</td>
+<td style="text-align:right;">
+0.7931257
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fall
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2864
+</td>
+<td style="text-align:right;">
+1728
+</td>
+<td style="text-align:right;">
+0.8897582
+</td>
+<td style="text-align:right;">
+0.1003026
+</td>
+<td style="text-align:right;">
+0.0100606
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.8434505
+</td>
+<td style="text-align:right;">
+0.9132078
+</td>
+<td style="text-align:right;">
+0.9616119
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0018742
+</td>
+<td style="text-align:right;">
+0.8860832
+</td>
+<td style="text-align:right;">
+0.8934332
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1343
+</td>
+<td style="text-align:right;">
+1005
+</td>
+<td style="text-align:right;">
+0.6969961
+</td>
+<td style="text-align:right;">
+0.1293625
+</td>
+<td style="text-align:right;">
+0.0167346
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.6044130
+</td>
+<td style="text-align:right;">
+0.6880000
+</td>
+<td style="text-align:right;">
+0.7865308
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0035300
+</td>
+<td style="text-align:right;">
+0.6900713
+</td>
+<td style="text-align:right;">
+0.7039210
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spring
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3066
+</td>
+<td style="text-align:right;">
+1966
+</td>
+<td style="text-align:right;">
+0.8304861
+</td>
+<td style="text-align:right;">
+0.1287925
+</td>
+<td style="text-align:right;">
+0.0165875
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7637297
+</td>
+<td style="text-align:right;">
+0.8489656
+</td>
+<td style="text-align:right;">
+0.9206164
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0023260
+</td>
+<td style="text-align:right;">
+0.8259255
+</td>
+<td style="text-align:right;">
+0.8350468
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1355
+</td>
+<td style="text-align:right;">
+1079
+</td>
+<td style="text-align:right;">
+0.6959110
+</td>
+<td style="text-align:right;">
+0.1113607
+</td>
+<td style="text-align:right;">
+0.0124012
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.6226048
+</td>
+<td style="text-align:right;">
+0.6937173
+</td>
+<td style="text-align:right;">
+0.7685609
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0030253
+</td>
+<td style="text-align:right;">
+0.6899763
+</td>
+<td style="text-align:right;">
+0.7018457
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+summer
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+3141
+</td>
+<td style="text-align:right;">
+2167
+</td>
+<td style="text-align:right;">
+0.8235304
+</td>
+<td style="text-align:right;">
+0.1128869
+</td>
+<td style="text-align:right;">
+0.0127434
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7557841
+</td>
+<td style="text-align:right;">
+0.8350515
+</td>
+<td style="text-align:right;">
+0.9024390
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0020142
+</td>
+<td style="text-align:right;">
+0.8195811
+</td>
+<td style="text-align:right;">
+0.8274798
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+no
+</td>
+<td style="text-align:right;">
+1448
+</td>
+<td style="text-align:right;">
+767
+</td>
+<td style="text-align:right;">
+0.8309879
+</td>
+<td style="text-align:right;">
+0.1423407
+</td>
+<td style="text-align:right;">
+0.0202609
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.7532262
+</td>
+<td style="text-align:right;">
+0.8584532
+</td>
+<td style="text-align:right;">
+0.9375000
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0037406
+</td>
+<td style="text-align:right;">
+0.8236502
+</td>
+<td style="text-align:right;">
+0.8383255
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+winter
+</td>
+<td style="text-align:left;">
+yes
+</td>
+<td style="text-align:right;">
+2794
+</td>
+<td style="text-align:right;">
+1277
+</td>
+<td style="text-align:right;">
+0.9119179
+</td>
+<td style="text-align:right;">
+0.1112586
+</td>
+<td style="text-align:right;">
+0.0123785
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.8793103
+</td>
+<td style="text-align:right;">
+0.9463850
+</td>
+<td style="text-align:right;">
+0.9834880
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0021048
+</td>
+<td style="text-align:right;">
+0.9077907
+</td>
+<td style="text-align:right;">
+0.9160451
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Overall, the total rental count is strongly related to the weather conditions. In cases of extreme weather, the mean of total rental count is much lower than that in clear days, which makes sense to me. It also shows that the mean of both registered count and casual count increased from 2011 to 2012 in every weather condition.<br />
+Besides, in winter fewer people chose to bike to work than in other seasons and the percentage of casual user count decreased to a large degree. That’s because compared to registered users the casual users preferred to choose other vehicles during winter when it’s usually cold outside.</p>
+</div>
+</div>
+<div id="make-visualizations" class="section level1">
+<h1>4.Make visualizations</h1>
+<div id="correlation-heatmap" class="section level2">
+<h2>correlation heatmap</h2>
+<pre class="r"><code>correlationMatrix &lt;- cor(df_num, method = &quot;pearson&quot;)
+pheatmap(correlationMatrix, cluster_rows = T, cluster_cols = T, 
+    clustering_distance_rows = &quot;correlation&quot;, clustering_distance_cols = &quot;correlation&quot;, 
+    main = &quot;The pearson correlation of numeric values&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Based on the heatmap, the registered count is positively related to the total count to a large extent, while the casual count is just moderately related to it. Temperature is also related to the rental count, but it looks like the humidity and wind speed has very little effects on the rental count. It shows a positive relationship between temperature and both the registered and casual count.</p>
+</div>
+<div id="plots" class="section level2">
+<h2>plots</h2>
+<div id="plot-1" class="section level3">
+<h3>Plot 1</h3>
+<pre class="r"><code>summ &lt;- df %&gt;%
+    dplyr::group_by(season, hr, yr) %&gt;%
+    summarise_at(vars(cnt), funs(n = n(), mean = mean, sd = sd, 
+        se = sd/sqrt(n)))
+df2 &lt;- df %&gt;%
+    merge(summ, by = c(&quot;season&quot;, &quot;hr&quot;, &quot;yr&quot;))</code></pre>
+<pre class="r"><code>df2 %&gt;%
+    ggplot() + geom_point(aes(x = hr, y = cnt, fill = season), 
+    stat = &quot;summary&quot;, fun = mean, shape = 23) + geom_line(aes(x = hr, 
+    y = mean, group = season, color = season)) + geom_ribbon(aes(x = hr, 
+    y = cnt, ymin = mean - se, ymax = mean + se, group = season, 
+    fill = season), alpha = 0.4) + scale_fill_manual(values = brewer.pal(n = 4, 
+    &quot;Spectral&quot;)) + facet_wrap(~yr) + xlab(&quot;hour&quot;) + ylab(&quot;the mean of total rental bike count&quot;) + 
+    ggtitle(&quot;The relationship between time and total rental bike count&quot;) + 
+    theme(strip.text = element_text(size = 12, face = &quot;bold&quot;), 
+        axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15), 
+        plot.title = element_text(size = 15), legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 10), axis.text.x = element_text(face = &quot;bold&quot;, 
+            color = &quot;#993333&quot;, size = 10), axis.text.y = element_text(face = &quot;bold&quot;, 
+            color = &quot;#993333&quot;, size = 10))</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-15-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>As shown in the plot above, generally there were more people renting bikes during 2012 than during 2011. The mean of the total rental bike count reached the highest levels at 8am and 5pm, which is because that usually people went to work and back home at these two time points, respectively. Additionally, more people rent bikes in summer but fewer did in winter. It’s reasonable since it’s more comfortable to drive than biking due to the coldness and unfavorable weather conditions in winter.</p>
+</div>
+<div id="plot-2" class="section level3">
+<h3>Plot 2</h3>
+<pre class="r"><code>df3 &lt;- df %&gt;%
+    gather(type, count_by_type, 15:16)
+summ &lt;- df3 %&gt;%
+    dplyr::group_by(type, weekday, weathersit) %&gt;%
+    summarise_at(vars(count_by_type), funs(n = n(), mean = mean, 
+        sd = sd, se = sd/sqrt(n)))
+df3 &lt;- df3 %&gt;%
+    merge(summ, by = c(&quot;type&quot;, &quot;weekday&quot;, &quot;weathersit&quot;))
+df3$se[is.na(df3$se)] &lt;- 0</code></pre>
+<pre class="r"><code>df3 %&gt;%
+    ggplot() + geom_bar(aes(x = weekday, y = count_by_type, group = type, 
+    fill = type), stat = &quot;summary&quot;, fun = mean, position = position_dodge(0.9)) + 
+    geom_errorbar(aes(x = weekday, y = count_by_type, group = type, 
+        color = type), stat = &quot;summary&quot;, fun.data = mean_se, 
+        position = position_dodge(0.9), width = 0.7) + facet_wrap(~weathersit) + 
+    geom_text(aes(x = weekday, y = mean + se + 2, label = round(mean, 
+        0), group = type), position = position_dodge(0.9), size = 3, 
+        color = &quot;black&quot;) + theme(strip.text = element_text(size = 8.5), 
+    axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15), 
+    plot.title = element_text(size = 15), legend.title = element_text(size = 10), 
+    legend.text = element_text(size = 10), axis.text.x = element_text(face = &quot;bold&quot;, 
+        color = &quot;#993333&quot;, size = 10), axis.text.y = element_text(face = &quot;bold&quot;, 
+        color = &quot;#993333&quot;, size = 10)) + xlab(&quot;day of the week&quot;) + 
+    ylab(&quot;the mean of rental bike count&quot;) + ggtitle(&quot;The relationship between rental bike count and weekday as well as weather&quot;) + 
+    scale_fill_manual(values = c(&quot;pink&quot;, &quot;skyblue&quot;))</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-17-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>Based on the plot above, registered users rent bikes more frequently than the casual group did. In cases of extreme weather the rental bike count of both casual and registered type decreased greatly and almost no casual group rent bikes. Besides, more people rent bikes during weekdays than during weekends when people don’t need to travel to work.</p>
+</div>
+</div>
+</div>
+<div id="perform-pca" class="section level1">
+<h1>5.Perform PCA</h1>
+<pre class="r"><code># select four numeric variables
+df_select &lt;- df %&gt;%
+    select(temp, atemp, casual, cnt)</code></pre>
+<pre class="r"><code># scale each variable first and then plot
+df_scale &lt;- data.frame(scale(df_select))
+ggpairs(df_scale)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Perform PCA
+df_pca &lt;- princomp(df_scale)
+summary(df_pca, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2     Comp.3      Comp.4
+## Standard deviation     1.6473535 0.9852891 0.55035853 0.110938584
+## Proportion of Variance 0.6784824 0.2427126 0.07572799 0.003077019
+## Cumulative Proportion  0.6784824 0.9211950 0.99692298 1.000000000
+## 
+## Loadings:
+##        Comp.1 Comp.2 Comp.3 Comp.4
+## temp    0.541  0.452         0.708
+## atemp   0.540  0.457        -0.706
+## casual  0.468 -0.503 -0.726       
+## cnt     0.444 -0.577  0.686</code></pre>
+<p>PC1 is a positive combination of all 4 vars (they are correlated).<br />
+PC2 mainly represents casual vs. cnt.</p>
+<pre class="r"><code># Plot of loadings (which vars contribute to which PCs)
+df_pca$loadings[1:4, 1:2] %&gt;%
+    as.data.frame %&gt;%
+    rownames_to_column %&gt;%
+    ggplot() + geom_hline(aes(yintercept = 0), lty = 2) + geom_vline(aes(xintercept = 0), 
+    lty = 2) + ylab(&quot;PC2&quot;) + xlab(&quot;PC1&quot;) + geom_segment(aes(x = 0, 
+    y = 0, xend = Comp.1, yend = Comp.2), arrow = arrow(), col = &quot;red&quot;) + 
+    geom_label(aes(x = Comp.1 * 1.1, y = Comp.2 * 1.1, label = rowname))</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># choose the number of principal components to keep
+eigval &lt;- df_pca$sdev^2  #square to convert SDs to eigenvalues
+varprop &lt;- round(eigval/sum(eigval), 2)  #proportion of var explained by each PC
+
+ggplot() + geom_bar(aes(y = varprop, x = 1:4), stat = &quot;identity&quot;) + 
+    xlab(&quot;&quot;) + geom_path(aes(y = varprop, x = 1:4)) + geom_text(aes(x = 1:4, 
+    y = varprop, label = round(varprop, 2)), vjust = 1, col = &quot;white&quot;, 
+    size = 5) + scale_y_continuous(breaks = seq(0, 0.6, 0.2), 
+    labels = scales::percent) + scale_x_continuous(breaks = 1:6)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>I picked the first two principal components because the cumulative proportion of variance of the first two has already reached 80%.</p>
+<pre class="r"><code># visualize and interpret
+df_new &lt;- data.frame(season = df$season, PC1 = df_pca$scores[, 
+    1], PC2 = df_pca$scores[, 2])
+ggplot(df_new, aes(PC1, PC2)) + geom_point(aes(color = season), 
+    alpha = 0.4, size = 0.5)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>fviz_pca_biplot(df_pca, col.ind = df$season, ) + coord_fixed()</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The PCA analysis was performed on four numeric variables, temp, atemp, casual and cnt. Unfortunately the data can’t be separated well by PC1 and PC2 and my guess is that the observations can’t be clustered well by significant differences between them. It seems that the data can be clustered by the season factor but not very much.</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

@@ -1,0 +1,140 @@
+---
+title: "RNA-Seq analysis"
+author: "Qingqing Guo"
+date: '2021-05-08'
+slug: r-python
+categories: R
+description: ''
+---
+
+```{r warning=FALSE}
+library(reticulate)
+# py_install("pandas")
+# py_install("numpy")
+# py_install("matplotlib")
+# py_install("seaborn")
+# py_install("random")
+# py_install("sklearn",pip = TRUE)
+```
+
+
+```{python}
+# import modules
+import pandas as pd
+import seaborn as sns
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+```
+
+
+# What is gene expression matrix?
+
+![](/img/figure2.png)
+
+
+# Analysis of gene expression matrix
+
+data source: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149146 \
+
+This expression matrix has been normalized by limma package.
+
+
+```{python}
+# load expression matrix
+df = pd.read_csv("GSE149146_RNA-seq_normCounts.txt", sep = '\t', header = 0, index_col = 4)
+df.drop(df.columns[0:4],axis=1,inplace=True)
+df.dropna(axis=0,inplace= True)
+print(df.shape); df.head()
+```
+
+## 1. correlation heatmap
+
+```{python}
+# Plotting a diagonal correlation matrix
+corr = df.corr()
+np.tril(np.ones(corr.shape)).astype(np.bool)[0:5,0:5]
+df_lt = corr.where(np.tril(np.ones(corr.shape)).astype(np.bool))
+sns.set(font_scale = 0.7)
+sns.heatmap(df_lt,cmap="Spectral_r",annot = True,annot_kws={"size":6})
+```
+
+## 2. subset data
+
+```{python}
+# make a subset
+samples = list(df.columns)
+print(samples);
+
+sub_sample = []
+for i in samples:
+  if i.startswith("A2780") or i.startswith("CP70"):
+    sub_sample.append(i)
+print(sub_sample);
+
+df_sub = df[sub_sample]
+df_sub = df_sub.sample(n=20,random_state=None,replace=False)
+sns.heatmap(df_sub, cmap = 'bwr')
+```
+
+
+```{python}
+# randomly select three genes
+genes = list(df_sub.index)
+gene = random.sample(genes,3)
+gene;
+
+df_sub2 = df.loc[gene]
+
+# plot gene expression across all cell types
+plt.plot(df.loc[gene[0]], color='red')
+plt.plot(df.loc[gene[1]], color='green')
+plt.plot(df.loc[gene[2]], color='blue')
+plt.xlabel("cell type")
+plt.ylabel('expression level')
+plt.legend([gene[0],gene[1],gene[2]])
+plt.tick_params(labelsize=4.6)
+plt.show()
+```
+
+
+## 3. PCA analysis
+
+```{python}
+# PCA in python
+cell = []
+for i in list(df.columns):
+  cell.append(i.split("_")[0])
+print(cell);
+
+x = df.transpose().to_numpy()
+y = cell
+```
+
+
+```{python}
+kmeans = KMeans(n_clusters=6)
+y_kmeans = kmeans.fit_predict(x)
+print(y_kmeans)
+
+pca = PCA()
+pcs = pca.fit_transform(x)
+
+# cumulative sum of pca explained variance
+pca.explained_variance_ratio_.cumsum()
+
+d = {'Principal Component 1':pcs[:,0], 'Principal Component 2':pcs[:,1], 'cell type':cell}
+data = pd.DataFrame(data=d)
+
+sns.lmplot('Principal Component 1', 'Principal Component 2', data=data, hue='cell type', fit_reg=False, palette="Set1")
+plt.gcf().subplots_adjust(bottom=0.15)
+plt.show()
+```
+
+
+
+
+

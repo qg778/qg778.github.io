@@ -1,0 +1,424 @@
+---
+title: "project2"
+author: "Qingqing Guo"
+date: "2021-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(rstatix)
+library(GGally)
+library(vegan)
+library(lmtest)
+library(sandwich)
+library(plotROC)
+library(glmnet)
+```
+
+
+
+# 0. Introduce the dataset and the variables
+
+
+The adult dataset is from the 1994 Census database. It is also known as “Census Income” dataset. There are totally 32560 observations and 12 variables. After rows with missing values were removed, 30161 observations are left. \
+```
+1. age: the age of an individual 
+2. workclass: a general term to represent the employment status of an individual 
+3. education_num: the number of years of education in total 
+4. marital-status: marital status of an individual. Married-civ-spouse corresponds to a civilian spouse while Married-AF-spouse is a spouse in the Armed Forces. 
+5. occupation: the general type of occupation of an individual 
+6. race: Descriptions of an individual’s race 
+7. sex: the biological sex of the individual 
+8 & 9. capital_gain and capital_loss: income from investment sources other than wage/salary. 
+10. hours-per-week: the hours an individual has reported to work per week 
+11. native-country: country of origin for an individual 
+12. income: whether or not an individual makes more than $50,000 annually 
+```
+
+```{r}
+df <- read.table("data/adult.txt",header = T)
+dim(df)
+# remove rows with missing values
+df <- df[rowSums(df=="?")==0,] %>% na.omit()
+df %>% glimpse()
+```
+
+
+# 1. Perform a MANOVA testing 
+
+```{r}
+# perform MANOVA testing
+man1 <- manova(cbind(educatoin_num,capital_gain,capital_loss,hours_per_week) ~ race, data = df)
+summary(man1)
+
+# perform univariate ANOVAs
+summary.aov(man1)
+
+# perform post-hoc t tests
+pairwise.t.test(df$educatoin_num, df$race, p.adj = "none")
+pairwise.t.test(df$capital_gain, df$race, p.adj = "none")
+pairwise.t.test(df$capital_loss, df$race, p.adj = "none")
+pairwise.t.test(df$hours_per_week, df$race, p.adj = "none")
+```
+
+
+Did 1 MANOVA, 4 ANOVAs, and 4*10=40 t tests (45 tests totally):
+
+```{r}
+# probability of at least one type I error
+1 - 0.95^45
+
+# adjust the significance level (bonferroni correction)
+0.05/45
+```
+
+
+The p-value of MANOVA testing is < 2.2e-16, so there are significant differences among the races for at least one of the variables. \
+Based on the ANOVA test results, for all of the four variables, at least one race differs. \
+The overall type-I error rate is 0.901. For Bonferroni correction, should use α=0.0011. \
+\
+All significant differences after adjustment: \
+For educatoin_num: \
+Amer-Indian-Eskimo vs. Asian-Pac-Islander \
+Amer-Indian-Eskimo vs. White \
+Asian-Pac-Islander vs. Black \
+Asian-Pac-Islander vs. Other \
+Asian-Pac-Islander vs. White \
+Black vs. Other \
+Black vs. White \
+Other vs. White \
+\
+For capital_gain: \
+Black vs. White \
+\
+For capital_loss: \
+Black vs. White \
+\
+For hours_per_week: \
+Asian-Pac-Islander vs. Black \
+Black vs. White
+
+
+```{r}
+# check MANOVA assumptions
+## Multivariate normality of DVs
+set.seed(1234)
+df1 <- sample_n(df, 5000) # only 5000 samples are allowed
+group <- df1$race
+DVs <- df1 %>% select(educatoin_num,capital_gain,capital_loss,hours_per_week)
+sapply(split(DVs,group), mshapiro_test) # Test multivariate normality for each group (null: normality met)
+```
+
+
+```{r}
+## Homogeneity of within-group covariance matrices
+box_m(DVs, group)
+```
+
+
+```{r}
+## Identify multicollinearity
+df %>% select(educatoin_num,capital_gain,capital_loss,hours_per_week) %>% ggpairs()
+```
+
+
+Based on the p-values, multivariate normality of DVs and homogeneity of within-group covariance matrices are not met here, while there is no multicollinearity based on the Pearson correlations.
+
+
+# 2. Perform some kind of randomization test
+
+
+```{r}
+# difference in education years between working in federal government and incorporated self-employment
+df2 <- df %>% filter(df$workclass=="Federal-gov" | df$workclass=="Self-emp-inc")
+rand_diff <- c()
+
+set.seed(12345)
+for(i in 1:5000){
+  rand_df <- data.frame(educatoin_num=sample(df2$educatoin_num),workclass=df2$workclass)
+  rand_diff[i] <- mean(rand_df$educatoin_num[rand_df$workclass=="Federal-gov"])-mean(rand_df$educatoin_num[rand_df$workclass=="Self-emp-inc"])
+}
+mean_diff <- mean(df$educatoin_num[df$workclass=="Federal-gov"])-mean(df$educatoin_num[df$workclass=="Self-emp-inc"])
+
+# two-tailed p-values
+mean(abs(rand_diff)>abs(mean_diff))
+
+# plot the null distribution
+ggplot()+geom_histogram(aes(x=rand_diff, y=..density..),fill="grey",color="black") + 
+    geom_density(aes(rand_diff))+geom_vline(xintercept=c(mean_diff,-mean_diff),color="red")
+
+# compare to the p-value from t-test
+t.test(df$educatoin_num[df$workclass=="Federal-gov"], df$educatoin_num[df$workclass=="Self-emp-inc"], alternative = c("two.sided"))
+```
+
+
+H0: there is no difference in education years between working in federal government and incorporated self-employment. \
+HA: there is a substantial difference in education years between working in federal government and incorporated self-employment.\
+\
+The p-value is less than 0.05 so we can reject the null hypothesis and conclude that there is a substantial difference in education years between working in federal government and incorporated self-employment.
+
+
+# 3. Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. 
+
+```{r}
+df3 <- df %>% mutate(age_c=df$age-mean(df$age))
+fit1 <- lm(hours_per_week ~ income+age_c*sex, data = df3)
+summary(fit1)
+```
+
+Intercept: the predicted hours_per_week for female at the mean age with income<=50K is 36.5. \
+income>50K: female at the mean age with income>50K have predicted hours_per_week that is 5.01 greater than female at the mean age with income<=50K. \
+age_c: for female with income<=50K, for every 1-unit increase in age, predicted hours_per_week goes up 0.075. \
+sexMale: male at the mean age with income<=50K have predicted hours_per_week that is 4.78 higher than female at the mean age with income<=50K. \
+age_c:sexMale: when income<=50K, slope of age on hours_per_week for male is 0.056 lower than for female. \
+\
+The model explains only 9.0% of the variation.
+
+
+```{r}
+# Plot the regression using ggplot()
+df3 %>% select(age_c,sex,hours_per_week) %>%
+    na.omit %>%
+    ggplot(aes(age_c,hours_per_week, color = sex)) + 
+    geom_point(size=0.1,alpha=0.3)+geom_smooth(method = "lm")+geom_vline(xintercept=0,lty=2)
+```
+
+
+```{r}
+# Check assumptions of linearity, normality, and homoskedasticity
+resids <- fit1$residuals
+fitvals <- fit1$fitted.values
+
+## normality
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids))
+
+## linearity and homoskedasticity
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+
+# corrected SE
+coeftest(fit1, vcov = vcovHC(fit1))
+```
+
+
+Neither linearity nor normality is met, while homoskedasticity is generally met here because the points don’t fan out as the x-axis goes up. \
+\
+Intercept: the predicted hours_per_week for female at the mean age with income<=50K is 36.5. \
+income>50K: income is significantly associated with hours_per_week for female at the mean age. Female at the mean age with income>50K have predicted hours_per_week that is 5.02 greater than female at the mean age with income<=50K. \
+age_c: age is significantly associated with hours_per_week for female with income<=50K. For female with income<=50K, for every 1-unit increase in age, predicted hours_per_week goes up 0.075. \
+sexMale: sex is significantly associated with hours_per_week for people at the mean age with income<=50K. Male at the mean age with income<=50K have predicted hours_per_week that is 4.78 higher than female at the mean age with income<=50K. \
+age_c:sexMale: the interaction between age and sex is significantly associated with hours_per_week for people with income<=50K. In the case of income<=50K, slope of age on hours_per_week for male is 0.056 lower than for female. \
+\
+After robust SEs, there is only slight change in the t-statistics and SEs.
+
+
+# 4. bootstrapped standard errors
+
+
+```{r}
+df4 <- df3 %>% select(income,age_c,sex,hours_per_week)
+
+# resampling observations
+samp_distn <- replicate(5000, {
+  boot_dat <- sample_frac(df4, replace = T)  #take bootstrap sample of rows
+  fit <- lm(hours_per_week ~ income+age_c*sex, data = boot_dat)  #fit model on bootstrap sample
+  coef(fit)
+})
+
+## Estimated SEs
+samp_distn %>%
+    t %>%
+    as.data.frame %>%
+    summarize_all(sd)
+```
+
+
+
+The resampling results are closer to the robust SEs than to the original SEs, meaning the results with robust standard errors are more accurate.
+
+
+# 5. Fit a logistic regression model predicting a binary variable
+
+```{r}
+df5 <- df %>% mutate(income=ifelse(income==">50K",1,0))
+```
+
+
+```{r}
+fit2 <- glm(income ~ marital_status+educatoin_num+sex, data = df5, family = "binomial")
+coeftest(fit2)
+exp(coef(fit2)) %>% round(3) %>% t
+prob <- predict(fit2,type="response")
+
+# ROC curve
+ROCplot <- ggplot() + geom_roc(aes(d=df5$income,m=prob),n.cuts=0) + 
+  geom_segment(aes(x=0,xend=1,y=0,yend=1), lty=2)
+ROCplot
+
+# compute the AUC
+calc_auc(ROCplot)
+```
+
+Intercept: the predicted odds of income>50K for divorced female with 0 educatoin_num is e^-6.6=0.001 \
+marital_statusMarried-AF-spouse: for female with 0 educatoin_num, odds of income>50K for those with a spouse in the Armed Forces is e^2.3=10 times odds for those divorced. \
+marital_statusMarried-civ-spouse: for female with 0 educatoin_num, odds of income>50K for those with a civilian spouse is e^1.9=6.67 times odds for those divorced. \
+marital_statusMarried-spouse-absent: for female with 0 educatoin_num, odds of income>50K for those with a spouse absent is e^-0.21=0.81 times odds for those divorced. \
+marital_statusNever-married: for female with 0 educatoin_num, odds of income>50K for those never married is e^-0.97=0.38 times odds for those divorced. \
+marital_statusSeparated: for female with 0 educatoin_num, odds of income>50K for those married but separated is e^-0.26=0.77 times odds for those divorced. \
+marital_statusWidowed: for female with 0 educatoin_num, odds of income>50K for those widowed is e^0.22=1.25 times odds for those divorced. \
+educatoin_num: for divorced female, going up 1 unit of educatoin_num multiplies the odds of income>50K by a factor of e^0.40=1.49. \
+sexMale: odds of income>50K for divorced male is e^0.38=1.46 times odds for divorced female. \
+\
+Based on the rules, 0.86 AUC means the model performing is good.
+
+
+```{r}
+# confusion matrix
+table(predict=as.numeric(prob>.5),truth=df5$income)%>%addmargins
+
+# Sensitivity (TPR)
+3548/7508
+
+# Specificity (TNR)
+20970/22653
+
+# Precision (PPV)
+3548/5231
+
+# Accuracy
+(20970+3548)/30161
+```
+
+
+```{r}
+# density plot of the log-odds (logit)
+logit <- predict(fit2,type="link")
+ggplot()+geom_density(aes(x=logit,fill=df$income,group=df$income),alpha=0.4)+scale_fill_discrete(name="income")
+```
+
+
+# 6. Perform a logistic regression predicting the same binary response variable from ALL of the rest of the variables
+
+```{r}
+fit3 <- glm(income~., data=df5, family="binomial")
+coeftest(fit3)
+prob <- predict(fit3, type = "response")
+```
+
+
+```{r}
+# compute in-sample classification diagnostics
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+class_diag(prob, df5$income)
+```
+
+
+Based on the rules, 0.904 AUC means the model performing is great.
+
+
+```{r}
+# Perform 10-fold CV with the same model
+set.seed(1234)
+k=10
+data <- df5 %>% sample_frac #put rows of dataset in random order
+folds <- ntile(1:nrow(data),n=10) #create fold labels
+diags<-NULL
+for(i in 1:k){
+  train <- data[folds!=i,] #create training set (all but fold i)
+  test <- data[folds==i,] #create test set (just fold i)
+  truth <- test$income #save truth labels from fold i
+  fit <- glm(income~., data=train, family="binomial")
+  probs <- predict(fit, newdata=test, type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean)
+```
+
+There is a 90.17% probability that a randomly selected person with income>50K has a higher predicted probability than a randomly selected person with income<=50K. \
+Based on the rules, 0.902 AUC means the model performing is great. Compared to the in-sample metrics, the AUC of 10-fold CV is slightly smaller.
+
+
+```{r}
+# Perform LASSO
+y <- as.matrix(df5$income) #grab response
+x <- model.matrix(fit3)[,-1] %>% scale()
+
+cv <- cv.glmnet(x,y,family="binomial")
+lasso <- glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+
+
+```{r}
+# grab the variables with non-zero coefficient
+coef <- coef(lasso) %>% as.matrix() %>% as.data.frame()
+coef <- row.names(coef)[coef$s0!=0]
+
+df6 <- df5 %>% mutate(across(where(is.factor), as.character))
+names <- colnames(df6 %>% select_if(is.character))
+names <- names[names!="sex"] # I don't want to change sex because there are only two levels
+
+for(i in names){
+  non_sig <- setdiff(df6[,i], gsub(i,"",coef[grepl(i,coef)]))
+  df6[,i][df6[,i] %in% non_sig] <- "others"
+}
+
+df6 <- df6 %>% mutate(across(where(is.character), as.factor))
+```
+
+
+All numeric variables are retained including age, educatoin_num, capital_gain, capital_loss and hours_per_week. Sex is also retained but for other categorical variables, only the elements with a non-zero coefficient are grabbed and retained.
+
+
+```{r}
+# Perform 10-fold CV using only the variables lasso selected
+set.seed(1234)
+k=10
+data <- df6 %>% sample_frac #put rows of dataset in random order
+folds <- ntile(1:nrow(data),n=10) #create fold labels
+diags<-NULL
+for(i in 1:k){
+  train <- data[folds!=i,] #create training set (all but fold i)
+  test <- data[folds==i,] #create test set (just fold i)
+  truth <- test$income #save truth labels from fold i
+  fit <- glm(income~., data=train, family="binomial")
+  probs <- predict(fit, newdata=test, type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean)
+```
+
+Compared to previous model, this model’s out-of-sample AUC shows a slight increase from 0.9017 to 0.9021. \
+\
+
+
+
+

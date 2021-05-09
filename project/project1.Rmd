@@ -1,0 +1,378 @@
+---
+title: "project1"
+author: "Qingqing Guo"
+date: "2021-02-17"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center",
+warning = F, message = F, tidy = TRUE, tidy.opts = list(width.cutoff = 60),
+R.options = list(max.print = 100))
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(pheatmap)
+library(RColorBrewer)
+library(kableExtra)
+library(GGally)
+library(factoextra)
+```
+
+
+The two datasets were acquired from UCI Machine Learning Repository that record the hourly count of rental bikes between 2011 and 2012 in Capital bikeshare system and some other information including temperature, weather and so on. The first data frame "BikeSharing.csv" is tidy recording the rental bike count hourly daily during 2011 and 2012, and it also contains other information such as temperature, weather, etc. It has 17379 observations and 16 variables. \
+The second data frame "windspeed.csv" is not tidy recording the normalized wind speed hourly daily during 2011 and 2012. It has 731 observations and 25 variables with the first variable being the date and the 2-25 variables being the hour. The values recorded in the 2-25 columns are the wind speed at that specific time. After tidying there are totally 17544 observations and 3 variables representing date, hour and the corresponding wind speed, respectively.
+
+
+```
+variables of BikeSharing.csv
+1. instant: record index
+2. dteday: date
+3. season: season 
+4. yr: year 
+5. mnth: month (1 to 12)
+6. hr: hour (0 to 23)
+7. holiday: whether day is holiday or not 
+8. weekday: day of the week
+9. workingday: if day is neither weekend nor holiday is ‘yes’, otherwise is ‘no’.
+10. weathersit 
+11. temp: Normalized temperature in Celsius. The values are divided to 41 (max)
+12. atemp: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+14. casual: count of casual users
+15. registered: count of registered users
+16. cnt: count of total rental bikes including both casual and registered
+```
+
+```
+variables of windspeed.csv
+1. dteday: date
+2-25: hour, values in 2-25: the wind speed at that specific time
+```
+
+
+
+# 1. Tidy data
+
+```{r}
+BikeSharing <- read_csv("data/BikeSharing.csv")
+BikeSharing %>% glimpse()
+```
+
+
+```{r}
+windspeed <- read_csv("data/windspeed.csv")
+windspeed %>% glimpse()
+```
+
+
+```{r}
+# Tidy with gather()
+windspeed <- windspeed %>% gather(hr,windspeed,-1) %>% mutate(hr=as.double(hr))
+windspeed %>% glimpse()
+```
+
+# 2. Join data
+
+```{r}
+# Join the two separate data
+df <- BikeSharing %>% left_join(windspeed, by=c("dteday"="dteday", "hr"="hr"))
+df <- df[,c(1:13,17,14:16)]
+df %>% glimpse()
+```
+
+
+There are 17379 observations in BikeSharing and 17544 observations in the tidy version windspeed. The two data were merged by left join, based on the information of the two variables, date and hour. During joining, the rows with the combination of date and hour not in the BikeSharing data were dropped. I decided to merge the data in this way because I need all of the information in the BikeSharing data frame but only the wind speed values that can match with the previous one.
+
+
+```{r}
+df <- df %>% mutate(instant = factor(instant, levels=instant),
+                    yr      = factor(yr, levels=unique(df$yr)),
+                    mnth    = factor(mnth, levels=1:12),
+                    hr      = factor(hr, levels=c(1:23,0)),
+                    weekday = factor(weekday, levels=c(1:6,0)),
+                    weathersit = factor(weathersit, levels=unique(df$weathersit)))
+```
+
+
+# 3. Create summary statistics
+
+## Use all six core dplyr functions (filter, select, arrange, group_by, mutate, summarize) to manipulate and explore dataset
+
+```{r}
+df <- df %>% 
+  mutate(casual_perc=casual/cnt) %>% 
+  mutate(registered_perc=registered/cnt)
+```
+
+
+```{r}
+df1 <- df %>%
+  select(instant,windspeed) %>%
+  mutate(
+    windspeed_rank = case_when(
+      windspeed > quantile(windspeed,probs = 0.75) ~ "high",
+      windspeed >= quantile(windspeed,probs = 0.25) & windspeed <= quantile(windspeed,probs = 0.75) ~ "mid",
+      windspeed < quantile(windspeed,probs = 0.25) ~ "low"
+    )
+  )
+df <- left_join(df,df1[,-2],by=c("instant" = "instant"))
+df <- df %>% mutate(windspeed_rank=factor(windspeed_rank, levels = c("low","mid","high")))
+```
+
+
+```{r}
+df %>% filter(yr==2011) %>% 
+  select(weathersit,cnt) %>% 
+  dplyr::group_by(weathersit) %>% 
+  dplyr::summarize(cnt_mean=mean(cnt)) %>% 
+  arrange(desc(cnt_mean))
+
+df %>% 
+  dplyr::group_by(season) %>% 
+  dplyr::summarize(cnt_mean=mean(cnt),
+                   registered_mean=mean(registered),
+                   casual_mean=mean(casual)) 
+
+```
+
+
+```{r}
+df_num <- df %>% select_if(is.numeric)
+```
+
+
+## Create summary statistics for each of the numeric variables overall
+
+
+```{r}
+summ <- list()
+for(i in colnames(df_num)) {
+  per <- df %>% summarise_at(vars(all_of(i)), funs(n(),n_distinct,mean,sd,var,
+                                           min,
+                                           Q1=quantile(.,probs = 0.25),
+                                           median,
+                                           Q3=quantile(.,probs = 0.75),
+                                           max,
+                                           se=sd/sqrt(n),
+                                           lower.ci=mean-qt(1-(0.05/2), n-1) * se,
+                                           upper.ci=mean+qt(1-(0.05/2), n-1) * se))
+  summ[[i]] <- per
+}
+
+tbl <- 
+do.call("rbind", summ) %>%
+  kable("html",caption = "overall summary") %>%
+  kable_styling(bootstrap_options=c("striped","hover","condensed"),full_width=F,position="left",font_size=10)
+tbl
+```
+
+
+## Create summary statistics for each of the numeric variables after grouping by categorical variables
+
+
+```{r, results='asis'}
+for(i in colnames(df_num)) {
+  per <- df %>% 
+  dplyr::group_by(yr,weathersit) %>% 
+  summarise_at(vars(i), funs(n(),n_distinct,mean,sd,var,
+                                           min,
+                                           Q1=quantile(.,probs = 0.25),
+                                           median,
+                                           Q3=quantile(.,probs = 0.75),
+                                           max,
+                                           se=sd/sqrt(n),
+                                           lower.ci=mean-qt(1-(0.05/2), n-1) * se,
+                                           upper.ci=mean+qt(1-(0.05/2), n-1) * se)) %>%
+  kable("html",caption = paste(i,"grouped by year and weathersit",sep = ", ")) %>%
+  kable_styling(bootstrap_options=c("striped","hover","condensed"),full_width=F,position="left",font_size=10) %>%
+  scroll_box(width = "900px", height = "300px")
+  print(per)
+}
+```
+
+
+```{r, results='asis'}
+for(i in colnames(df_num)) {
+  per <- df %>% 
+  dplyr::group_by(season,workingday) %>% 
+  summarise_at(vars(i), funs(n(),n_distinct,mean,sd,var,
+                                           min,
+                                           Q1=quantile(.,probs = 0.25),
+                                           median,
+                                           Q3=quantile(.,probs = 0.75),
+                                           max,
+                                           se=sd/sqrt(n),
+                                           lower.ci=mean-qt(1-(0.05/2), n-1) * se,
+                                           upper.ci=mean+qt(1-(0.05/2), n-1) * se)) %>% 
+  kable("html",caption = paste(i,"grouped by season and workingday",sep = ", ")) %>%
+  kable_styling(bootstrap_options=c("striped","hover","condensed"),full_width=F,position="left",font_size=10) %>%
+  scroll_box(width = "900px", height = "300px")
+  print(per)
+}
+```
+
+Overall, the total rental count is strongly related to the weather conditions. In cases of extreme weather, the mean of total rental count is much lower than that in clear days, which makes sense to me. It also shows that the mean of both registered count and casual count increased from 2011 to 2012 in every weather condition. \
+Besides, in winter fewer people chose to bike to work than in other seasons and the percentage of casual user count decreased to a large degree. That’s because compared to registered users the casual users preferred to choose other vehicles during winter when it’s usually cold outside.
+
+
+
+# 4.Make visualizations
+
+## correlation heatmap
+
+```{r}
+correlationMatrix <- cor(df_num, method="pearson")
+pheatmap(correlationMatrix, 
+         cluster_rows = T, 
+         cluster_cols = T,
+         clustering_distance_rows = "correlation",
+         clustering_distance_cols = "correlation",
+         main = "The pearson correlation of numeric values")
+```
+
+
+Based on the heatmap, the registered count is positively related to the total count to a large extent, while the casual count is just moderately related to it. Temperature is also related to the rental count, but it looks like the humidity and wind speed has very little effects on the rental count. It shows a positive relationship between temperature and both the registered and casual count.
+
+
+## plots
+
+### Plot 1
+
+```{r}
+summ <- df %>% 
+  dplyr::group_by(season,hr,yr) %>% 
+  summarise_at(vars(cnt), funs(n=n(),mean=mean,sd=sd,se=sd/sqrt(n)))
+df2 <- df %>% merge(summ, by=c("season","hr","yr"))
+```
+
+
+```{r, fig.width=12,fig.height=5}
+df2 %>% ggplot()+ 
+  geom_point(aes(x=hr,y=cnt,fill=season),stat="summary",fun=mean,shape=23)+
+  geom_line(aes(x=hr,y=mean,group=season,color=season))+
+  geom_ribbon(aes(x=hr,y=cnt,ymin=mean-se,ymax=mean+se,group=season,fill=season),alpha=0.4)+
+  scale_fill_manual(values = brewer.pal(n = 4,"Spectral"))+
+  facet_wrap(~yr)+
+  xlab("hour")+
+  ylab("the mean of total rental bike count") +
+  ggtitle("The relationship between time and total rental bike count")+
+  theme(strip.text = element_text(size=12,face = "bold"),
+        axis.title.x=element_text(size=15), 
+        axis.title.y=element_text(size=15),
+        plot.title=element_text(size=15),
+        legend.title=element_text(size=10),
+        legend.text=element_text(size=10),
+        axis.text.x = element_text(face="bold", color="#993333",size=10),
+        axis.text.y = element_text(face="bold", color="#993333",size=10))
+```
+
+As shown in the plot above, generally there were more people renting bikes during 2012 than during 2011. The mean of the total rental bike count reached the highest levels at 8am and 5pm, which is because that usually people went to work and back home at these two time points, respectively. Additionally, more people rent bikes in summer but fewer did in winter. It's reasonable since it's more comfortable to drive than biking due to the coldness and unfavorable weather conditions in winter.
+
+
+### Plot 2
+
+
+```{r}
+df3 <- df %>% gather(type,count_by_type,15:16)
+summ <- df3 %>% 
+  dplyr::group_by(type,weekday,weathersit) %>% 
+  summarise_at(vars(count_by_type), funs(n=n(),mean=mean,sd=sd,se=sd/sqrt(n)))
+df3 <- df3 %>% merge(summ, by=c("type","weekday","weathersit"))
+df3$se[is.na(df3$se)] <- 0
+```
+
+
+```{r, fig.width=12,fig.height=10}
+df3 %>% ggplot()+ 
+  geom_bar(aes(x=weekday,y=count_by_type,group=type,fill=type),stat="summary",fun=mean,position = position_dodge(0.9))+
+  geom_errorbar(aes(x=weekday,y=count_by_type,group=type,color=type),stat="summary",fun.data=mean_se,position = position_dodge(0.9),width=0.7)+
+  facet_wrap(~weathersit)+
+  geom_text(aes(x=weekday,y=mean+se+2,label=round(mean,0),group=type),position = position_dodge(0.9),size = 3,color="black") +
+  theme(strip.text = element_text(size=8.5),
+        axis.title.x=element_text(size=15), 
+        axis.title.y=element_text(size=15),
+        plot.title=element_text(size=15),
+        legend.title=element_text(size=10),
+        legend.text=element_text(size=10),
+        axis.text.x = element_text(face="bold", color="#993333",size=10),
+        axis.text.y = element_text(face="bold", color="#993333",size=10))+
+  xlab("day of the week") + 
+  ylab("the mean of rental bike count") + 
+  ggtitle("The relationship between rental bike count and weekday as well as weather")+
+  scale_fill_manual(values=c("pink", "skyblue"))
+```
+
+
+Based on the plot above, registered users rent bikes more frequently than the casual group did. In cases of extreme weather the rental bike count of both casual and registered type decreased greatly and almost no casual group rent bikes. Besides, more people rent bikes during weekdays than during weekends when people don't need to travel to work.
+ 
+
+# 5.Perform PCA
+
+
+```{r}
+# select four numeric variables
+df_select <- df %>% select(temp,atemp,casual,cnt)
+```
+
+
+```{r}
+# scale each variable first and then plot
+df_scale <- data.frame(scale(df_select))
+ggpairs(df_scale)
+```
+
+
+```{r}
+# Perform PCA
+df_pca <- princomp(df_scale)
+summary(df_pca, loadings=T)
+```
+
+
+PC1 is a positive combination of all 4 vars (they are correlated). \
+PC2 mainly represents casual vs. cnt.
+
+
+```{r}
+# Plot of loadings (which vars contribute to which PCs)
+df_pca$loadings[1:4, 1:2] %>% as.data.frame %>% rownames_to_column %>%
+ggplot() + geom_hline(aes(yintercept=0), lty=2) +
+  geom_vline(aes(xintercept=0), lty=2) + ylab("PC2") + xlab("PC1") +
+  geom_segment(aes(x=0, y=0, xend=Comp.1, yend=Comp.2), arrow=arrow(), col="red") +
+  geom_label(aes(x=Comp.1*1.1, y=Comp.2*1.1, label=rowname))
+```
+
+
+```{r}
+# choose the number of principal components to keep
+eigval <- df_pca$sdev^2 #square to convert SDs to eigenvalues
+varprop <- round(eigval/sum(eigval), 2) #proportion of var explained by each PC
+
+ggplot() + geom_bar(aes(y=varprop, x=1:4), stat="identity") + xlab("") + geom_path(aes(y=varprop, x=1:4)) +
+  geom_text(aes(x=1:4, y=varprop, label=round(varprop, 2)), vjust=1, col="white", size=5) +
+  scale_y_continuous(breaks=seq(0, .6, .2), labels = scales::percent) +
+  scale_x_continuous(breaks=1:6)
+```
+
+I picked the first two principal components because the cumulative proportion of variance of the first two has already reached 80%.
+
+
+```{r}
+# visualize and interpret
+df_new <- data.frame(season=df$season, PC1=df_pca$scores[, 1],PC2=df_pca$scores[, 2])
+ggplot(df_new, aes(PC1, PC2)) + geom_point(aes(color=season),alpha=0.4,size=0.5)
+```
+
+
+```{r}
+fviz_pca_biplot(df_pca, col.ind = df$season, ) + coord_fixed()
+```
+
+
+The PCA analysis was performed on four numeric variables, temp, atemp, casual and cnt. Unfortunately the data can't be separated well by PC1 and PC2 and my guess is that the observations can't be clustered well by significant differences between them. It seems that the data can be clustered by the season factor but not very much. 
+
+
+
